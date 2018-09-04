@@ -92,9 +92,14 @@ class User:
         self.user_id = user_id
         self.image_url = image_url
         self.contact = []
+        self.room_id = None
 
     def new_chatroom(self,to,msg):
-        uu = str(uuid.uuid3(uuid.NAMESPACE_DNS, self.user_id+to))
+        self.get_contacts()
+        if self.room_id:
+            uu = self.room_id
+        else:
+            uu = str(uuid.uuid3(uuid.NAMESPACE_DNS, self.user_id+to))
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         img_url, = c.execute("SELECT image_url FROM user where user_id=?", (to,)).fetchall()[0]
@@ -120,23 +125,26 @@ class User:
         return self
 
     def get_contacts(self):
-        conn = sqlite3.connect('mock_Wechat.db')
-        c = conn.cursor()
-        chatroom = c.execute("SELECT id,sender_id FROM contact where receiver_id=?", (self.user_id,)).fetchall()
-        for chat in chatroom:
-            room_id, sender_id = chat
-            user_image, = c.execute("SELECT image_url FROM user where user_id=?", (sender_id,)).fetchall()[0]
-            print(user_image)
-            print(room_id, sender_id)
+        try:
+            conn = sqlite3.connect('mock_Wechat.db')
+            c = conn.cursor()
+            chatroom = c.execute("SELECT id,sender_id FROM contact where receiver_id=?", (self.user_id,)).fetchall()
+            for chat in chatroom:
+                self.room_id, sender_id = chat
+                user_image, = c.execute("SELECT image_url FROM user where user_id=?", (sender_id,)).fetchall()[0]
+                #print(user_image)
+                print("Chatting in the room: " + self.room_id)
+        except Exception as e:
+            pass
         return self
 
 
-# user = User(user_id="sirilee", image_url="some.jpg")
-# user.create_table().write_to_database()
-#
-# user1 = User(user_id="sirily", image_url="some1.jpg")
-# user1.write_to_database()
-#
-# while True:
-#     message = input("Message: ")
-#     user.new_chatroom(to="sirily",msg=message)
+user = User(user_id="sirilee", image_url="some.jpg")
+user.create_table().write_to_database()
+
+user1 = User(user_id="sirily", image_url="some1.jpg")
+user1.write_to_database()
+
+while True:
+    message = input("Message: ")
+    user1.new_chatroom(to="sirilee",msg=message)
