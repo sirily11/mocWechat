@@ -29,6 +29,7 @@ class Message:
         c = conn.cursor()
         data = (self.id, self.time, self.sender, self.receiver, self.content, str(self.read))
         c.execute("INSERT INTO message VALUES (?,?,?,?,?,?)", data)
+        c.execute("UPDATE contact SET last_message = ?",(self.content,))
         conn.commit()
         return self
 
@@ -92,6 +93,17 @@ class User:
         self.image_url = image_url
         self.contact = []
 
+    def new_chatroom(self,to,msg):
+        uu = str(uuid.uuid3(uuid.NAMESPACE_DNS, self.user_id+to))
+        conn = sqlite3.connect('mock_Wechat.db')
+        c = conn.cursor()
+        img_url, = c.execute("SELECT image_url FROM user where user_id=?", (to,)).fetchall()[0]
+        contact = Contact(room_id=uu,img=img_url,name=to,receiver_id=to,
+                          sender_id=self.user_id).create_table().send_message(msg).write_to_database()
+
+        return self
+
+
     def create_table(self):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
@@ -105,6 +117,7 @@ class User:
         data = (self.user_id, self.image_url)
         c.execute("Insert OR IGNORE INTO user VALUES (?,?)", data)
         conn.commit()
+        return self
 
     def get_contacts(self):
         conn = sqlite3.connect('mock_Wechat.db')
@@ -118,13 +131,12 @@ class User:
         return self
 
 
-# uuid = str(uuid.uuid3(uuid.NAMESPACE_DNS, 'sirily'))
+# user = User(user_id="sirilee", image_url="some.jpg")
+# user.create_table().write_to_database()
 #
-# person = Contact(room_id=uuid, img="somgimg.jpg", name="sirilee", receiver_id="sirilee",
-#                  sender_id="sirily")
-# person2 = Contact(room_id=uuid, img="somgimg.jpg", name="sirilee", receiver_id="sirily",
-#                   sender_id="sirilee")
-# person.create_table().send_message("Hello").write_to_database()
-
-user = User(user_id="sirilee", image_url="some.jpg")
-user.get_contacts()
+# user1 = User(user_id="sirily", image_url="some1.jpg")
+# user1.write_to_database()
+#
+# while True:
+#     message = input("Message: ")
+#     user.new_chatroom(to="sirily",msg=message)
