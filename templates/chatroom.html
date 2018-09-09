@@ -1,21 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script
-            src="https://code.jquery.com/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="/static/js/bootstrap-material-design.min.js"></script>
-    <script src="/static/js/material-kit.js?v=2.0.0"></script>
-    <link rel="stylesheet" href="/static/css/material-kit.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <meta charset="UTF-8">
-    <title>Message</title>
-</head>
+{% include "parts/head.html" %}
 <style>
     .send {
         background-color: blue;
@@ -49,18 +34,20 @@
     {% include "parts/nav_bar.html" %}
     {% include "parts/sendbox.html" %}
     <main class="mdl-layout__content">
-        <div class="container  break-text" id="display" style="margin-bottom: 150px;"></div>
+        <div class="container  break-text" id="display" style="margin-bottom: 150px;">
+            {% include "parts/message_boxes.html" %}
+        </div>
     </main>
 </div>
 </body>
 <script>
-    let ws = new WebSocket('ws://' + document.domain + ':' + location.port + '/ws');
+    //let ws = new WebSocket('ws://' + document.domain + ':5678/ws');
+    console.log(document.domain);
+    let ws = new WebSocket(`ws://${document.domain}:${location.port}/ws/{{ room_id|string }}/{{ from_user|string}}/{{ to_user|string }}`);
 
-    function sendMessage(msg){
+    function sendMessage(msg) {
         let sendStr = {
-            from : `{{ from_user|string}}`,
-            to : `{{ to_user|string}}`,
-            message : msg
+            message: msg
         };
         ws.send(JSON.stringify(sendStr))
     }
@@ -71,10 +58,10 @@
         let modifiedText = "";
         let j = 0;
         sendMessage(text);
-        for(let i = 1; i<=text.length;i++){
-            modifiedText += text[i-1];
+        for (let i = 1; i <= text.length; i++) {
+            modifiedText += text[i - 1];
             j++;
-            if(j*12 > $(window).width()*0.95){
+            if (j * 12 > $(window).width() * 0.95) {
                 modifiedText += "<br>";
                 j = 0;
             }
@@ -97,16 +84,16 @@
         console.log("Get");
         let modifiedText = "";
         let j = 0;
-         for(let i = 1; i<=event.data.length;i++){
-            modifiedText += event.data[i-1];
+        for (let i = 1; i <= event.data.length; i++) {
+            modifiedText += event.data[i - 1];
             j++;
-            if(j*12 > $(window).width()*0.95){
+            if (j * 12 > $(window).width() * 0.95) {
                 modifiedText += "<br>";
                 j = 0;
             }
         }
         $("#display").append(
-                `
+            `
                 <div class="d-flex flex-row bd-highlight">
                     <div class="p-2 bd-highlight">
                         <div class="from-them">

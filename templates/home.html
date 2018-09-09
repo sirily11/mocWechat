@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="../static/js/bootstrap-material-design.min.js"></script>
-    <script src="../static/js/material-kit.js?v=2.0.0"></script>
-    <link rel="stylesheet" href="../static/css/material-kit.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <meta charset="UTF-8">
-    <title>Mock Wechat</title>
-</head>
+{% include "parts/head.html" %}
 <style>
     .round-img {
         border-radius: 100%;
@@ -27,33 +13,40 @@
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
     {% include "parts/nav_bar.html" %}
     <main class="mdl-layout__content">
-        {%for message in messages %}
-        <form action="{{url_for('chatting-room')}}" method="post">
-            <input hidden type="text" name="chatroom">
-            <div class="card bg-info" style="margin-top: 20px;margin-bottom: 20px">
-                <div class="card-body">
-                    <div class="author">
-                        <img src="{{message.Img}}"
-                             alt="..." class="avatar img-raised">
-                        <span>{{message.Name}}</span>
-                        <span class="badge badge-danger">{{message["Unread"]}}</span>
+        {% for c in chatroom %}
+            <form action="/chatroom">
+            {% if current_user == c.room_owner %}
+                <input hidden class="form-control" name="from_user" value="{{ c.room_owner }}">
+                <input id="to" hidden class="form-control" name="to_user" value="{{ c.friend }}">
+                <input hidden class="form-control" name="room_id" value="{{ c.room_id }}">
+                {% else %}
+                <input hidden class="form-control" name="from_user" value="{{ c.friend }}">
+                <input hidden class="form-control" name="to_user" value="{{ c.room_owner }}">
+                <input hidden class="form-control" name="room_id" value="{{ c.room_id }}">
+            {% endif %}
+                <div class="card bg-info" style="margin-top: 20px;margin-bottom: 20px">
+                    <div class="card-body">
+                        <div class="author">
+                            <img src="https://d235zo2kjgm9jl.cloudfront.net/original/1X/ed147b66d73586db081398dfd353929a9fa3899b.jpg"
+                                 alt="..." class="avatar img-raised">
+                            {% if current_user == c.room_owner %}
+                            <span>{{ c.friend }}</span>
+                                {% else %}
+                                <span>{{ c.room_owner }}</span>
+                            {% endif %}
+                            <span class="badge badge-danger">{{ c["number_unread"] }}</span>
+                        </div>
+                        <h6><span class="tim-note">{{ c["last_message"] }}</span></h6>
                     </div>
-                    <h6><span class="tim-note">{{message["Last message"]}}</span></h6>
                 </div>
-            </div>
-        </form>
+            </form>
         {% endfor %}
     </main>
 </div>
 <script>
-    // var ws = new WebSocket('ws://' + document.domain + ':' + location.port + '/ws');
-    //
-    // ws.onmessage = function (event) {
-    //     console.log(event.data);
-    // };
-    // ws.onopen = function () {
-    //
-    // }
+    $(document).on("click", ".card", function () {
+        $(this).parent().submit();
+    })
 </script>
 </body>
 </html>
