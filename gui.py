@@ -1,13 +1,12 @@
-from PyQt5 import QtCore
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtGui import QStandardItemModel
-
-from design import Ui_MainWindow
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
-from app import run as run_server, stop
-import threading
 import sqlite3
+import sys
+
+from PyQt5.QtCore import QThread
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
+from PyQt5.QtCore import pyqtSlot
+import threading, multiprocessing
+from design import Ui_MainWindow
+from routes import run as run_server
 
 
 class MyThread(QThread):
@@ -15,6 +14,8 @@ class MyThread(QThread):
         super().__init__()
         self.ip = ""
         self.port = ""
+        self.conn = sqlite3.connect('mock_Wechat.db')
+        self.c = self.conn.cursor()
 
     def add(self, ip, port):
         self.ip = ip
@@ -24,8 +25,7 @@ class MyThread(QThread):
         self.wait()
 
     def run(self):
-        run_server(ip=self.ip, port=self.port)
-
+       pass
 
 # Controller
 class AppWindow(QMainWindow):
@@ -35,27 +35,39 @@ class AppWindow(QMainWindow):
         self.ui.setupUi(self)
         self.ui.runButton.clicked.connect(
             lambda: self.start_server(self.ui.ipAddress.text(), self.ui.portNumber.text()))
+
         self.conn = sqlite3.connect('mock_Wechat.db')
         self.c = self.conn.cursor()
-        self.thread = MyThread()
         self.server_status = "stop"
+
         self.ui.loadBtn.clicked.connect(self.show_table)
+        self.p = None
+
+        #self.thread = MyThread()
+
         self.show()
+
+    @pyqtSlot(str)
+    def add_text(self,text):
+        self.ui.textEdit.append(text)
 
     def start_server(self, ip, port):
         if self.server_status == "run":
             self.stop_server()
         else:
-            self.thread.add(self.ui.ipAddress.text(), self.ui.portNumber.text())
             self.ui.textEdit.append("Start server at {} port: {}".format(ip, port))
-            self.thread.start()
+            self.p = multiprocessing.Process(target=run_server,
+                                             args=(ip,
+                                                   port))
+            self.p.start()
             self.server_status = "run"
             self.ui.runButton.setText("Stop")
 
     def stop_server(self):
         self.ui.textEdit.append("Stop server")
-        self.thread.terminate()
-        sys.exit(app.exec_())
+        self.server_status = "stop"
+        self.ui.runButton.setText("Run")
+        self.p.terminate()
 
     def show_table(self):
         if self.ui.user_btn.isChecked():
