@@ -1,19 +1,22 @@
-import json
 import asyncio
+import json
+
 from quart import Quart, render_template, request, websocket
-from contact import User, App
+from PyQt5.QtCore import pyqtSignal
+from Messager.messager import User, App
 
 app = Quart(__name__)
 databaseApp = App()
 # a dict to memorized all the connected websockets
 connected = {}
+trigger = pyqtSignal(str)
 
 
 @app.route("/home")
 async def home():
     current_user = request.args.get('current_user')
     room_info = User(user_id=current_user, image_url="").get_chat_room()
-
+    trigger.emit("new")
     return await render_template("home.html", title="Message", chatroom=room_info,
                                  current_user=current_user, show_addbtn=True)
 
@@ -113,8 +116,3 @@ def run(ip, port):
     app.run(ip, port=port)
 
 
-def stop():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()

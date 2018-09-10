@@ -1,7 +1,6 @@
 import sqlite3
 
-from contact import User, Message, Contact, App
-import pytest
+from .messager import User, App
 
 
 def test_send():
@@ -12,7 +11,7 @@ def test_send():
     assert json["Content"] == "hello"
 
 
-def test_send():
+def test_send2():
     user = User("testid", "someimg.jpg")
     json = user.with_message("你好").to("testid2").send(write=False).message.to_json()
     assert json['Sender'] == "testid"
