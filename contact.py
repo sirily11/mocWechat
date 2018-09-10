@@ -22,8 +22,8 @@ class Message:
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         data = (self.id, self.time, self.sender, self.receiver, self.content, str(self.read))
-        number_of_unread = c.execute("SELECT read from message where id=?", (self.id,)).fetchall()
-        self.number_of_unread = len(number_of_unread)
+        number_of_unread = c.execute("SELECT read from message where id=? and read=?", (self.id, "False")).fetchall()
+        self.number_of_unread = len(number_of_unread) + 1
         c.execute("INSERT INTO message VALUES (?,?,?,?,?,?)", data)
         c.execute("UPDATE contact SET last_message = ?,number_of_unread=? WHERE id=?",
                   (self.content, self.number_of_unread, self.id))
@@ -57,11 +57,14 @@ class Contact:
         self.message = Message(self.id, self.room_owner, self.friend, msg)
         return self
 
-    def write_to_database(self):
+    def write_to_database(self, exist):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         data = (self.id, self.name, self.room_owner, self.friend, self.last_message, self.number_unread)
-        c.execute("INSERT OR IGNORE INTO contact VALUES (?,?,?,?,?,?)", data)
+        data2 = (self.id, self.name, self.friend, self.room_owner, self.last_message, self.number_unread)
+        if not exist:
+            c.execute("INSERT INTO contact VALUES (?,?,?,?,?,?)", data)
+            c.execute("INSERT INTO contact VALUES (?,?,?,?,?,?)", data2)
         conn.commit()
         self.message.write_to_database()
         return self
@@ -93,21 +96,39 @@ class User:
 
         return self
 
-    def send(self, write=True, address=""):
-        self.get_contacts()
+    def __search_room_id__(self):
+        conn = sqlite3.connect('mock_Wechat.db')
+        c = conn.cursor()
+        data = c.execute("SELECT id FROM contact where room_owner=? and friend=?",
+                         (self.user_id, self.receiver)).fetchall()
+        if len(data) > 0:
+            room_id, = data[0]
+            return room_id
+
+    def read(self, room_id):
+        conn = sqlite3.connect('mock_Wechat.db')
+        c = conn.cursor()
+        c.execute("UPDATE contact SET number_of_unread=? WHERE id=? and room_owner=?",
+                  (0, room_id, self.user_id))
+        c.execute("UPDATE message SET read=? WHERE id=? and receiver=?",
+                  ("True", room_id, self.user_id))
+        conn.commit()
+
+    def send(self, write=True):
+        exist = self.__search_room_id__()
         if self.receiver is None:
             raise Exception("No receive defined, use to() before send")
-        if self.room_id:
-            uu = self.room_id
+        if exist:
+            # if the room already exist
+            uu = exist
         else:
             uu = str(uuid.uuid3(uuid.NAMESPACE_DNS, self.user_id + self.receiver))
-        # conn = sqlite3.connect('mock_Wechat.db')
-        # c = conn.cursor()
-        # img_url, = c.execute("SELECT image_url FROM user where user_id=?", (self.receiver,)).fetchall()[0]
+
         contact = Contact(room_id=uu, name=self.receiver, friend=self.receiver,
                           room_owner=self.user_id).create_message(self.message)
         if write:
-            contact.write_to_database()
+            # if the room already exist, then pass the exist parm
+            contact.write_to_database(exist)
 
         return contact
 
@@ -158,30 +179,15 @@ class User:
         conn.commit()
         return self
 
-    def get_contacts(self):
-        try:
-            conn = sqlite3.connect('mock_Wechat.db')
-            c = conn.cursor()
-            chatroom = c.execute("SELECT id,room_owner FROM contact where friend=?", (self.user_id,)).fetchall()
-            for chat in chatroom:
-                self.room_id, sender_id = chat
-                user_image, = c.execute("SELECT image_url FROM user where user_id=?", (sender_id,)).fetchall()[0]
-        except Exception as e:
-            print(e)
-        return self
-
-    def get_chatrooms(self):
-        l = []
+    def get_chat_room(self):
+        li = []
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         chat_room = c.execute("SELECT * FROM contact where room_owner=?", (self.user_id,)).fetchall()
-        # if the room owner is not the user
-        if len(chat_room) == 0:
-            chat_room += c.execute("SELECT * FROM contact where friend=?", (self.user_id,)).fetchall()
 
         for c in chat_room:
             room_id, name, room_owner, friend, last_message, number_unread = c
-            l.append({
+            li.append({
                 "room_id": room_id,
                 "name": name,
                 "room_owner": room_owner,
@@ -189,7 +195,7 @@ class User:
                 "last_message": last_message,
                 "number_unread": number_unread
             })
-        return l
+        return li
 
     @staticmethod
     def get_message(room_id):
@@ -224,6 +230,14 @@ class App:
         c.execute("DELETE FROM user where user_id=?", (user_id,))
         conn.commit()
 
+    @staticmethod
+    def remove_contact(room_id):
+        conn = sqlite3.connect('mock_Wechat.db')
+        c = conn.cursor()
+        c.execute("DELETE FROM contact where id=?", (room_id,))
+        c.execute("DELETE FROM message where id=?", (room_id,))
+        conn.commit()
+
     def start(self):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
@@ -233,7 +247,7 @@ class App:
         # Create Contact table
         c.execute("""CREATE TABLE IF NOT EXISTS contact 
                                      (id TEXT, name text, room_owner text, friend text ,
-                                     last_message text, number_of_unread text,UNIQUE (id)) 
+                                     last_message text, number_of_unread text) 
                                      """)
         # Create Message table
         c.execute("""CREATE TABLE IF NOT EXISTS message 

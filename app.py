@@ -1,25 +1,21 @@
 import json
 import asyncio
 from quart import Quart, render_template, request, websocket
-# import websockets
-# from flask import Flask, render_template
 from contact import User, App
 
 app = Quart(__name__)
 databaseApp = App()
-
+# a dict to memorized all the connected websockets
 connected = {}
 
 
-# app = Flask(__name__)
-
 @app.route("/home")
-def home():
+async def home():
     current_user = request.args.get('current_user')
-    room_info = User(user_id=current_user, image_url="").get_chatrooms()
-    print(room_info)
-    return render_template("home.html", title="Message", chatroom=room_info,
-                           current_user=current_user, show_addbtn=True)
+    room_info = User(user_id=current_user, image_url="").get_chat_room()
+
+    return await render_template("home.html", title="Message", chatroom=room_info,
+                                 current_user=current_user, show_addbtn=True)
 
 
 @app.route('/')
@@ -27,8 +23,9 @@ async def login():
     return await render_template("login.html")
 
 
+# a handler for signing up
 @app.route("/sign_up")
-def sign_up():
+def sign_up_handler():
     user_id = request.args.get('user_id')
     password = request.args.get('password')
     success, message = User.signup(user_id=user_id, password=password)
@@ -38,6 +35,7 @@ def sign_up():
     })
 
 
+# a handler for checking login
 @app.route("/check_login")
 def login_handler():
     user_id = request.args.get('user_id')
@@ -49,6 +47,9 @@ def login_handler():
     })
 
 
+# a handler for searching function
+# which will have a auto notification of the user
+# which have a similar user id
 @app.websocket('/search')
 async def searching_handler():
     while True:
@@ -57,6 +58,7 @@ async def searching_handler():
         await websocket.send(json.dumps(result))
 
 
+# a handler for adding new chat room
 @app.route("/add")
 def add_handler():
     from_user = request.args.get('from_user')
@@ -66,6 +68,7 @@ def add_handler():
     return {"success": True}
 
 
+# chat room
 @app.route("/chatroom", methods=["GET", "POST"])
 async def chatroom():
     from_user = request.args.get('from_user')
@@ -78,21 +81,24 @@ async def chatroom():
                                  show_backarr=True, messages=messages, room_id=room_id)
 
 
+# websocket for chatting
 @app.websocket('/ws/<room_id>/<from_user>/<to_user>')
 async def ws(room_id, from_user, to_user):
     # Store the connection
     connected.update({
         room_id + from_user: websocket._get_current_object()
     })
+    # create a user object
+    user = User(user_id=from_user, image_url="some.img")
+    user.read(room_id)
     while True:
         # get the data
         data = await websocket.receive()
         # parse the data
         data = json.loads(data)
-        # create a user object
-        user = User(user_id=from_user, image_url="some.img")
         # write the data to database
         user.with_message(data['message']).to(to_user).send()
+        user.read(room_id=room_id)
         try:
             # use the websocket in the same room and send the message
             soc = connected[room_id + to_user]
@@ -101,11 +107,14 @@ async def ws(room_id, from_user, to_user):
             print(e)
 
 
-if __name__ == "__main__":
+def run(ip, port):
+    asyncio.set_event_loop(asyncio.new_event_loop())
     databaseApp.start()
-    ip = "0.0.0.0"
-    # start_server = websockets.serve(ws, ip, 5678)
-    # loop = asyncio.get_event_loop()
-    # loop.run_until_complete(start_server)
-    app.run("0.0.0.0", port=5000, debug=True)
-    # asyncio.get_event_loop().run_forever()
+    app.run(ip, port=port)
+
+
+def stop():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()

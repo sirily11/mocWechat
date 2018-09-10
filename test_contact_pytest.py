@@ -1,3 +1,5 @@
+import sqlite3
+
 from contact import User, Message, Contact, App
 import pytest
 
@@ -85,3 +87,89 @@ def test_search():
     assert len(result) == 2
     App.remove_user(user_id=user_id)
     App.remove_user(user_id=user_id2)
+
+
+def test_send_msg():
+    user_id = "test1"
+    user_id2 = "tesst2"
+    password = "1234"
+    # first sign up both user
+    User.signup(user_id=user_id, password=password)
+    User.signup(user_id=user_id2, password=password)
+    # then create a user object
+    user1 = User(user_id, "")
+    user1.with_message("Hello").to(user_id2).send()
+    room_id = user1.__search_room_id__()
+    # now select the id in contact table, the length should be 2
+    conn = sqlite3.connect('mock_Wechat.db')
+    c = conn.cursor()
+    data = c.execute("SELECT room_owner,friend,last_message from contact where id=?", (room_id,)).fetchall()
+    App.remove_contact(room_id)
+    App.remove_user(user_id=user_id)
+    App.remove_user(user_id=user_id2)
+    assert len(data) == 2
+    room_owner, friend, last_message = data[0]
+    assert last_message == "Hello"
+    assert room_owner == user_id
+    assert friend == user_id2
+
+    room_owner, friend, last_message = data[1]
+    assert last_message == "Hello"
+    assert room_owner == user_id2
+    assert friend == user_id
+
+
+def test_send_msg2():
+    # test with the insert into contact table
+    user_id = "test1"
+    user_id2 = "tesst2"
+    password = "1234"
+    # first sign up both user
+    User.signup(user_id=user_id, password=password)
+    User.signup(user_id=user_id2, password=password)
+    # then create a user object
+    user1 = User(user_id, "")
+    user1.with_message("Hello").to(user_id2).send()
+    user1.with_message("Hello").to(user_id2).send()
+    room_id = user1.__search_room_id__()
+    # now select the id in contact table, the length should be 2
+    conn = sqlite3.connect('mock_Wechat.db')
+    c = conn.cursor()
+    data = c.execute("SELECT room_owner,friend,last_message from contact where id=?", (room_id,)).fetchall()
+    App.remove_contact(room_id)
+    App.remove_user(user_id=user_id)
+    App.remove_user(user_id=user_id2)
+    assert len(data) == 2
+    room_owner, friend, last_message = data[0]
+    assert last_message == "Hello"
+    assert room_owner == user_id
+    assert friend == user_id2
+
+    room_owner, friend, last_message = data[1]
+    assert last_message == "Hello"
+    assert room_owner == user_id2
+    assert friend == user_id
+
+
+def test_read():
+    # test with the insert into contact table
+    user_id = "test1"
+    user_id2 = "tesst2"
+    password = "1234"
+    # first sign up both user
+    User.signup(user_id=user_id, password=password)
+    User.signup(user_id=user_id2, password=password)
+    # then create a user object
+    user1 = User(user_id, "")
+    user2 = User(user_id2, "")
+    user1.with_message("Hello").to(user_id2).send()
+    user1.with_message("Hello").to(user_id2).send()
+    room_id = user1.__search_room_id__()
+    number_unread_old = int(user2.get_chat_room()[0]["number_unread"])
+    user2.read(room_id)
+    number_unread_new = int(user2.get_chat_room()[0]["number_unread"])
+    App.remove_contact(room_id)
+    App.remove_user(user_id=user_id)
+    App.remove_user(user_id=user_id2)
+    assert number_unread_old == 2
+    assert number_unread_new == 0

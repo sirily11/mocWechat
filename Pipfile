@@ -9,6 +9,8 @@ websockets = "*"
 "boto3" = "*"
 pytest = "*"
 flask = "*"
+"pyqt5" = "*"
+docker = "*"
 
 [dev-packages]
 
