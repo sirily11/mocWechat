@@ -6,14 +6,11 @@ name = "pypi"
 [packages]
 quart = "*"
 websockets = "*"
-"boto3" = "*"
 pytest = "*"
-flask = "*"
 "pyqt5" = "*"
 docker = "*"
 psutil = "*"
 pyinstaller = "*"
-"pypiwin32" = "*"
 "pywin32-ctypes" = "*"
 
 [dev-packages]

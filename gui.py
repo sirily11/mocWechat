@@ -1,14 +1,14 @@
+import multiprocessing
 import sqlite3
 import sys
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
-from PyQt5.QtCore import pyqtSlot
-import threading, multiprocessing
-from design import Ui_MainWindow
-from routes import run as run_server
-from Messager.sender import Sender
 import time
+
 import psutil
+from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
+from view.view import Ui_MainWindow
+from routes import run as run_server
 
 
 class MyThread(QThread):
