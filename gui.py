@@ -1,21 +1,25 @@
 import sqlite3
 import sys
-
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from PyQt5.QtCore import pyqtSlot
 import threading, multiprocessing
 from design import Ui_MainWindow
 from routes import run as run_server
+from Messager.sender import Sender
+import time
+import psutil
 
 
 class MyThread(QThread):
+    sig1 = pyqtSignal(str)
+    sig2 = pyqtSignal(list)
+    sig3 = pyqtSignal(dict)
+
     def __init__(self):
         super().__init__()
         self.ip = ""
         self.port = ""
-        self.conn = sqlite3.connect('mock_Wechat.db')
-        self.c = self.conn.cursor()
 
     def add(self, ip, port):
         self.ip = ip
@@ -25,7 +29,23 @@ class MyThread(QThread):
         self.wait()
 
     def run(self):
-       pass
+        start_time = time.time()
+        while True:
+            try:
+                if time.time() - start_time > 10:
+                    start_time = time.time()
+                    self.sig3.emit({
+                        "message": "Refreshed the user table contents ",
+                        "list": []
+                    })
+
+                cpu_usage = psutil.cpu_percent(interval=None)
+                ram_usage = psutil.virtual_memory().percent
+                self.sig2.emit([cpu_usage, ram_usage])
+                time.sleep(1)
+            except Exception as e:
+                print(e)
+
 
 # Controller
 class AppWindow(QMainWindow):
@@ -39,27 +59,51 @@ class AppWindow(QMainWindow):
         self.conn = sqlite3.connect('mock_Wechat.db')
         self.c = self.conn.cursor()
         self.server_status = "stop"
-
         self.ui.loadBtn.clicked.connect(self.show_table)
         self.p = None
 
-        #self.thread = MyThread()
-
         self.show()
 
+    def connect(self, thread: MyThread):
+        thread.sig1.connect(self.add_text)
+        thread.sig2.connect(self.change_cpu_bar)
+        thread.sig3.connect(self.refresh_user_table)
+
+    @pyqtSlot(dict)
+    def refresh_user_table(self, data):
+        if self.ui.user_btn.isChecked():
+            self.ui.textEdit.append(data["message"])
+            self.show_user_table()
+
     @pyqtSlot(str)
-    def add_text(self,text):
+    def add_text(self, text):
+        print(text)
         self.ui.textEdit.append(text)
+
+    @pyqtSlot(list)
+    def change_cpu_bar(self, li):
+        self.ui.cpu_usage.setValue(li[0])
+        self.ui.ram_usage.setValue(li[1])
 
     def start_server(self, ip, port):
         if self.server_status == "run":
             self.stop_server()
         else:
+
+            if sys.platform == "darwin":
+                self.ui.textEdit.append("Running server on OS X")
+
+            if sys.platform == "win32":
+                self.ui.textEdit.append("Running server on windows")
+
+            try:
+                self.p = multiprocessing.Process(target=run_server,
+                                                 args=(ip,
+                                                       port))
+                self.p.start()
+            except Exception as e:
+                print(e)
             self.ui.textEdit.append("Start server at {} port: {}".format(ip, port))
-            self.p = multiprocessing.Process(target=run_server,
-                                             args=(ip,
-                                                   port))
-            self.p.start()
             self.server_status = "run"
             self.ui.runButton.setText("Stop")
 
@@ -67,11 +111,20 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append("Stop server")
         self.server_status = "stop"
         self.ui.runButton.setText("Run")
-        self.p.terminate()
+        try:
+            self.p.terminate()
+        except Exception as e:
+            print(e)
 
     def show_table(self):
         if self.ui.user_btn.isChecked():
             self.show_user_table()
+            text = """
+            <span style=\" font-size:8pt; font-weight:600; color:#ff0000;\" >
+            Warning: User table will automatically refresh
+            </span>
+            """
+            self.ui.textEdit.append(text)
         elif self.ui.contact_btn.isChecked():
             self.show_contact_table()
         elif self.ui.message_btn.isChecked():
@@ -120,9 +173,13 @@ class AppWindow(QMainWindow):
             self.ui.tableWidget.setItem(i, 5, QTableWidgetItem(read))
 
 
-app = QApplication(sys.argv)
-w = AppWindow()
-try:
-    sys.exit(app.exec_())
-except Exception as e:
-    print(e)
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = AppWindow()
+    t = MyThread()
+    w.connect(t)
+    t.start()
+    try:
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(e)

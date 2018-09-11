@@ -2,21 +2,20 @@ import asyncio
 import json
 
 from quart import Quart, render_template, request, websocket
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 from Messager.messager import User, App
+from Messager.sender import Sender
 
 app = Quart(__name__)
 databaseApp = App()
 # a dict to memorized all the connected websockets
 connected = {}
-trigger = pyqtSignal(str)
 
 
 @app.route("/home")
 async def home():
     current_user = request.args.get('current_user')
     room_info = User(user_id=current_user, image_url="").get_chat_room()
-    trigger.emit("new")
     return await render_template("home.html", title="Message", chatroom=room_info,
                                  current_user=current_user, show_addbtn=True)
 

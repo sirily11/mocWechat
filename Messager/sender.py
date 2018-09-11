@@ -1,3 +1,9 @@
-from PyQt5.Core import pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QTimer, QTime
 
-class Sender()
+
+class Sender(QObject):
+    sender = pyqtSignal(str)
+
+    def send(self, msg):
+        self.trigger.emit(msg)
+

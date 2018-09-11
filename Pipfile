@@ -11,6 +11,7 @@ pytest = "*"
 flask = "*"
 "pyqt5" = "*"
 docker = "*"
+psutil = "*"
 
 [dev-packages]
 
