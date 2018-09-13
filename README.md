@@ -1,5 +1,5 @@
 # Open Messager
-Live demo: the whole app is deployed at AWS with docker, you can preview the app [here](message.sirileepage.com)
+Live demo: the whole app is deployed at AWS with docker, you can preview the app [here](http://message.sirileepage.com)
 * Server side
 * Client
 
