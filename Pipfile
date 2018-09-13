@@ -12,6 +12,7 @@ docker = "*"
 psutil = "*"
 pyinstaller = "*"
 "pywin32-ctypes" = "*"
+passlib = "*"
 
 [dev-packages]
 
