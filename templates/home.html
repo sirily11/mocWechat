@@ -44,9 +44,13 @@
     </main>
 </div>
 <script>
+    let ws = new WebSocket(`ws://${document.domain}:${location.port}/ws/0/0/0`);
     $(document).on("click touchstart", ".card", function () {
         $(this).parent().submit();
     });
+    ws.onmessage = function (event) {
+        console.log(event.data)
+    }
 </script>
 </body>
 </html>

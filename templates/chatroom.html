@@ -44,6 +44,7 @@
     //let ws = new WebSocket('ws://' + document.domain + ':5678/ws');
     console.log(document.domain);
     let ws = new WebSocket(`ws://${document.domain}:${location.port}/ws/{{ room_id|string }}/{{ from_user|string}}/{{ to_user|string }}`);
+    Push.Permission.request();
 
     function sendMessage(msg) {
         let sendStr = {
@@ -81,7 +82,6 @@
     });
 
     ws.onmessage = function (event) {
-        console.log("Get");
         let modifiedText = "";
         let j = 0;
         for (let i = 1; i <= event.data.length; i++) {
@@ -92,6 +92,16 @@
                 j = 0;
             }
         }
+
+        Push.create("Message", {
+            body: modifiedText,
+            timeout: 4000,
+            onClick: function () {
+                window.focus();
+                this.close();
+            }
+        });
+
         $("#display").append(
             `
                 <div class="d-flex flex-row bd-highlight">

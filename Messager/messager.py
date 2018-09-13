@@ -1,7 +1,8 @@
 import datetime
-import json
 import sqlite3
 import uuid
+
+from passlib.hash import pbkdf2_sha256
 
 
 class Message:
@@ -22,7 +23,7 @@ class Message:
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         data = (self.id, self.time, self.sender, self.receiver, self.content, str(self.read))
-        number_of_unread = c.execute("SELECT read from message where id=? and read=?", (self.id, "False")).fetchall()
+        number_of_unread = c.execute("SELECT read FROM message WHERE id=? AND read=?", (self.id, "False")).fetchall()
         self.number_of_unread = len(number_of_unread) + 1
         c.execute("INSERT INTO message VALUES (?,?,?,?,?,?)", data)
         c.execute("UPDATE contact SET last_message = ?,number_of_unread=? WHERE id=?",
@@ -99,7 +100,7 @@ class User:
     def __search_room_id__(self):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        data = c.execute("SELECT id FROM contact where room_owner=? and friend=?",
+        data = c.execute("SELECT id FROM contact WHERE room_owner=? AND friend=?",
                          (self.user_id, self.receiver)).fetchall()
         if len(data) > 0:
             room_id, = data[0]
@@ -108,9 +109,9 @@ class User:
     def read(self, room_id):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        c.execute("UPDATE contact SET number_of_unread=? WHERE id=? and room_owner=?",
+        c.execute("UPDATE contact SET number_of_unread=? WHERE id=? AND room_owner=?",
                   (0, room_id, self.user_id))
-        c.execute("UPDATE message SET read=? WHERE id=? and receiver=?",
+        c.execute("UPDATE message SET read=? WHERE id=? AND receiver=?",
                   ("True", room_id, self.user_id))
         conn.commit()
 
@@ -136,10 +137,10 @@ class User:
     def login(user_id, password):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        data = c.execute("SELECT password FROM user where user_id =?", (user_id,)).fetchall()
+        data = c.execute("SELECT password FROM user WHERE user_id =?", (user_id,)).fetchall()
         if len(data) > 0:
             psw, = data[0]
-            if psw == password:
+            if pbkdf2_sha256.verify(password, psw):
                 return True, "success"
             else:
                 return False, "password"
@@ -148,10 +149,11 @@ class User:
 
     @staticmethod
     def signup(user_id, password):
+        password = pbkdf2_sha256.hash(password)
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         try:
-            c.execute("Insert INTO user VALUES (?,?,?)", (user_id, "", password))
+            c.execute("INSERT INTO user VALUES (?,?,?)", (user_id, "", password))
             conn.commit()
             return True, "success"
         except Exception as e:
@@ -175,7 +177,7 @@ class User:
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
         data = (self.user_id, self.image_url)
-        c.execute("Insert OR IGNORE INTO user VALUES (?,?,?)", data)
+        c.execute("INSERT OR IGNORE INTO user VALUES (?,?,?)", data)
         conn.commit()
         return self
 
@@ -183,7 +185,7 @@ class User:
         li = []
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        chat_room = c.execute("SELECT * FROM contact where room_owner=?", (self.user_id,)).fetchall()
+        chat_room = c.execute("SELECT * FROM contact WHERE room_owner=?", (self.user_id,)).fetchall()
 
         for c in chat_room:
             room_id, name, room_owner, friend, last_message, number_unread = c
@@ -201,7 +203,7 @@ class User:
     def get_message(room_id):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        messages = c.execute("SELECT content,sender,receiver FROM message where id=?", (room_id,)).fetchall()
+        messages = c.execute("SELECT content,sender,receiver FROM message WHERE id=?", (room_id,)).fetchall()
         li = []
         for message in messages:
             content, sender, receiver = message
@@ -227,15 +229,15 @@ class App:
     def remove_user(user_id):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        c.execute("DELETE FROM user where user_id=?", (user_id,))
+        c.execute("DELETE FROM user WHERE user_id=?", (user_id,))
         conn.commit()
 
     @staticmethod
     def remove_contact(room_id):
         conn = sqlite3.connect('mock_Wechat.db')
         c = conn.cursor()
-        c.execute("DELETE FROM contact where id=?", (room_id,))
-        c.execute("DELETE FROM message where id=?", (room_id,))
+        c.execute("DELETE FROM contact WHERE id=?", (room_id,))
+        c.execute("DELETE FROM message WHERE id=?", (room_id,))
         conn.commit()
 
     def start(self):
@@ -243,13 +245,13 @@ class App:
         c = conn.cursor()
         # Create user table
         c.execute("""CREATE TABLE IF NOT EXISTS user
-                (user_id text,image_url text, password text, UNIQUE (user_id))""")
+                (user_id TEXT,image_url TEXT, password TEXT, UNIQUE (user_id))""")
         # Create Contact table
         c.execute("""CREATE TABLE IF NOT EXISTS contact 
-                                     (id TEXT, name text, room_owner text, friend text ,
-                                     last_message text, number_of_unread text) 
+                                     (id TEXT, name TEXT, room_owner TEXT, friend TEXT ,
+                                     last_message TEXT, number_of_unread TEXT) 
                                      """)
         # Create Message table
         c.execute("""CREATE TABLE IF NOT EXISTS message 
-                                   (id TEXT, time text, sender text, receiver text, content text, read text)""")
+                                   (id TEXT, time TEXT, sender TEXT, receiver TEXT, content TEXT, read TEXT)""")
         return self

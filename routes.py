@@ -1,33 +1,44 @@
 import asyncio
 import json
 import os
-from quart import Quart, render_template, request, websocket
-from PyQt5.QtCore import QObject, pyqtSignal
+import uuid
+from quart import Quart, render_template, \
+    request, websocket,session,flash,redirect,url_for
+
 from Messager.messager import User, App
-from Messager.sender import Sender
-template = os.path.join(os.getcwd(),"templates")
-app = Quart(__name__,template_folder=template)
+
+template = os.path.join(os.getcwd(), "templates")
+app = Quart(__name__, template_folder=template)
+app.secret_key = str(uuid.uuid4())
 databaseApp = App()
+
 # a dict to memorized all the connected websockets
 connected = {}
 
 
 @app.route("/home")
 async def home():
-    current_user = request.args.get('current_user')
-    room_info = User(user_id=current_user, image_url="").get_chat_room()
-    return await render_template("home.html", title="Message", chatroom=room_info,
-                                 current_user=current_user, show_addbtn=True)
+    if "login" in session:
+        current_user = request.args.get('current_user')
+        room_info = User(user_id=current_user, image_url="").get_chat_room()
+        return await render_template("home.html", title="Message", chatroom=room_info,
+                                     current_user=current_user, show_addbtn=True)
+    else:
+        flash("Not login")
+        return redirect(url_for("login"))
 
 
 @app.route('/')
 async def login():
+    if "login" in session:
+        flash("You have already login")
     return await render_template("login.html")
 
 
 # a handler for signing up
 @app.route("/sign_up")
 def sign_up_handler():
+    session['login'] = True
     user_id = request.args.get('user_id')
     password = request.args.get('password')
     success, message = User.signup(user_id=user_id, password=password)
@@ -43,6 +54,10 @@ def login_handler():
     user_id = request.args.get('user_id')
     password = request.args.get('password')
     success, msg = User.login(user_id=user_id, password=password)
+
+    if success:
+        session["login"] = True
+
     return json.dumps({
         "success": success,
         "message": msg
@@ -113,5 +128,3 @@ def run(ip, port):
     asyncio.set_event_loop(asyncio.new_event_loop())
     databaseApp.start()
     app.run(ip, port=port)
-
-
