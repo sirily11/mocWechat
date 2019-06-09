@@ -11,6 +11,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const MongoClient = require("mongodb");
 const bcrypt = require("bcrypt");
 const settings_1 = require("./settings/settings");
+/**
+ * Get mongodb client
+ * @returns Mongodb client without database selected
+ */
 function getClient() {
     return new Promise((resolve, rejects) => {
         MongoClient.connect(settings_1.settings.url, {
@@ -25,6 +29,10 @@ function getClient() {
         });
     });
 }
+exports.getClient = getClient;
+/**
+ * Initialize collection and unique index
+ */
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -42,14 +50,25 @@ function init() {
                         }
                     });
                 }
+                db.close();
             });
         }));
     });
 }
+exports.init = init;
+function destroy() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let db = yield getClient();
+        let dbo = db.db(settings_1.settings.databaseName);
+        yield dbo.dropDatabase();
+        db.close();
+    });
+}
+exports.destroy = destroy;
 /**
  * Create A new user
  * @param user User Object
- * @returns string
+ * @returns User ID
  */
 function addUser(user) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -71,10 +90,12 @@ function addUser(user) {
                     console.log("document inserted");
                     resolve(res.insertedId.toHexString());
                 }
+                db.close();
             });
         }));
     });
 }
+exports.addUser = addUser;
 /**
  * Delete a user
  * @param user User Object
@@ -89,9 +110,17 @@ function deleteUser(userID) {
             else {
                 console.log("document deleted");
             }
+            db.close();
         });
     });
 }
+exports.deleteUser = deleteUser;
+/**
+ *
+ * @param userName Username to login
+ * @param password password
+ * @returns user id if login success
+ */
 function login(userName, password) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -106,28 +135,104 @@ function login(userName, password) {
                 else {
                     let match = yield bcrypt.compare(password, res.password);
                     if (match) {
-                        resolve("login");
+                        resolve(res._id);
                     }
                     else {
                         reject("Wrong password");
                     }
                 }
+                db.close();
             }));
         }));
     });
 }
-init().then(() => {
-    let user = { userName: "h", password: "q", dateOfBirth: "1990", sex: "male" };
-    // addUser(user).then((id)=>{
-    //     console.log(id)
-    // }).catch((err)=>{
-    //     console.log(err)
-    // })
-    // deleteUser("5cfc01b7d3bd2917fe38934b")
-    login("h", "q").then((info) => {
-        console.log(info);
-    }).catch((err) => {
-        console.log(err);
+exports.login = login;
+/**
+ * Add friend to one's friend list
+ * @param user User who want to add friend
+ * @param friend friend to be added
+ * @returns true if added
+ */
+function addFriend(user, friend) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            let db = yield getClient();
+            let dbo = db.db(settings_1.settings.databaseName);
+            if (user._id && friend._id) {
+                if (user._id == friend._id)
+                    reject(false);
+                dbo.collection(settings_1.settings.userCollectionName).updateOne({ _id: new MongoClient.ObjectID(user._id) }, { $addToSet: { friends: new MongoClient.ObjectID(friend._id) } }, (err, res) => {
+                    if (err) {
+                        console.log(err);
+                        reject(false);
+                    }
+                    else {
+                        dbo.collection(settings_1.settings.userCollectionName).updateOne({ _id: new MongoClient.ObjectID(friend._id) }, { $addToSet: { friends: new MongoClient.ObjectID(user._id) } }, (err, res) => {
+                            if (err) {
+                                console.log(err);
+                                reject(false);
+                            }
+                            else {
+                                console.log("friend added");
+                                resolve(true);
+                            }
+                            db.close();
+                        });
+                    }
+                });
+            }
+            else {
+                db.close();
+                console.log("No user id field");
+                reject(false);
+            }
+        }));
     });
-});
+}
+exports.addFriend = addFriend;
+function getFriendList(user) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            let db = yield getClient();
+            let dbo = db.db(settings_1.settings.databaseName);
+            if (user._id) {
+                try {
+                    let u = yield dbo.collection(settings_1.settings.userCollectionName).findOne({ _id: new MongoClient.ObjectID(user._id) });
+                    if (u !== null) {
+                        resolve(u.friends);
+                    }
+                    else {
+                        reject("getFriendList: No such user");
+                    }
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+            else {
+                reject("User doesn't have id");
+            }
+            db.close();
+        }));
+    });
+}
+exports.getFriendList = getFriendList;
+// init().then(async () => {
+//     let user: User = { _id: "5cfd13f2058e103c1a3160a2", userName: "h", password: "q", dateOfBirth: "1990", sex: "male" }
+//     let user2: User = { _id: "5cfd224976f6e84a14dde3f6", userName: "ha", password: "q", dateOfBirth: "1990", sex: "male" }
+//     let user3: User = { _id: "5cfd22568785e54a3459e334", userName: "haa", password: "q", dateOfBirth: "1990", sex: "male" }
+//     // addUser(user3).then((id)=>{
+//     // }).catch((err)=>{
+//     //     console.log(err)
+//     // })
+//     // deleteUser("5cfc01b7d3bd2917fe38934b")
+//     // login("h", "q").then((info)=>{
+//     //     console.log(info)
+//     // }).catch((err)=>{
+//     //     console.log(err)
+//     // })
+//     // addFriend(user2, user3)
+//     let list = await getFriendList(user2)
+//     console.log(list)
+// })
 //# sourceMappingURL=user.js.map
