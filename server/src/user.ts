@@ -78,9 +78,12 @@ export async function addUser(user: User, debug = false): Promise<string> {
 
         let db = await getClient()
         let dbo = db.db(databaseName)
-
-        let hashPassword = await bcrypt.hash(user.password, 10)
-        user.password = hashPassword
+        try {
+            let hashPassword = await bcrypt.hash(user.password, 10)
+            user.password = hashPassword
+        } catch (err) {
+            console.log(err)
+        }
 
         dbo.collection(userCollectionName).insertOne(user, (err, res) => {
             if (err) {
@@ -248,8 +251,8 @@ export async function getFriendList(user: User, debug = false): Promise<User[]> 
  * @param userName User's user name
  * @param debug 
  */
-export async function searchPeople(userName: string, debug=false): Promise<User[]>{
-    return new Promise(async (resolve, reject)=>{
+export async function searchPeople(userName: string, debug = false): Promise<User[]> {
+    return new Promise(async (resolve, reject) => {
         let databaseName = settings.databaseName
         let userCollectionName = settings.userCollectionName
         if (debug) {
@@ -258,14 +261,13 @@ export async function searchPeople(userName: string, debug=false): Promise<User[
         }
         let db = await getClient()
         let dbo = db.db(databaseName)
-        try{
-            console.log(userName)
-            let userList : User[] = await dbo.collection(userCollectionName).find({userName: {$regex: userName}}, {projection: {password:0}}).limit(10).toArray()
+        try {
+            let userList: User[] = await dbo.collection(userCollectionName).find({ userName: { $regex: userName } }, { projection: { password: 0 } }).limit(10).toArray()
             resolve(userList)
-        } catch(err){
+        } catch (err) {
             reject(err)
         }
-       
+
     })
 }
 

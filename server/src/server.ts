@@ -21,62 +21,70 @@ wss.on('connection', (ws: WebSocket) => {
     ws.send('Hi there, I am a WebSocket server');
 });
 
-app.get("/", (req, res)=>{
+app.get("/", (req, res) => {
     res.send("Hello world a")
 })
 
-app.post("/add/user", async (req, res)=>{
+app.post("/add/user", async (req, res) => {
     let user: User = req.body
-    try{
-        await init()
-        let uid = await addUser(user)
-        res.send({userId: uid})
-    } catch(err){
-        res.send({err: err})
+    try {
+        if (user.userName && user.password) {
+            await init()
+            let uid = await addUser(user)
+            res.send({ userId: uid })
+        } else {
+            res.send({ err: "Data not vaild" })
+        }
+
+    } catch (err) {
+        res.status(400).send({ err: err })
     }
-    
+
 })
 
-app.post("/login", async (req, res)=>{
+app.post("/login", async (req, res) => {
     let userName: string = req.body.userName
     let password: string = req.body.password
-    try{
+    try {
         let uid = await login(userName, password)
-        res.send({userId: uid})
-    } catch(err){
-        res.send({err: err})
+        console.log("Login")
+        res.send({ userId: uid })
+    } catch (err) {
+        console.log(err)
+        res.status(400).send({ err: err })
     }
 })
 
-app.post("/add/friend", async (req, res)=>{
+app.post("/add/friend", async (req, res) => {
+    console.log(req.body)
     let user: User = req.body.user
     let friend: User = req.body.friend
-    try{
+    try {
         let status = await addFriend(user, friend)
-        res.send({status: status})
-    } catch(err){
-        res.send({err: err})
+        res.send({ status: status })
+    } catch (err) {
+        res.status(400).send({ err: err })
     }
 })
 
-app.get("/get/friends", async (req, res)=>{
-    let userID : string = req.query.userID
-    try{
-        let list: User[] = await getFriendList({_id:userID})
+app.get("/get/friends", async (req, res) => {
+    let userID: string = req.query.userID
+    try {
+        let list: User[] = await getFriendList({ _id: userID })
         res.send(list)
-    } catch(err){
-        res.send({err: err})
+    } catch (err) {
+        res.send({ err: err })
     }
     console.log(req.query)
 })
 
-app.get("/search/user", async (req, res)=>{
-    let userName : string = req.query.userName
-    try{
+app.get("/search/user", async (req, res) => {
+    let userName: string = req.query.userName
+    try {
         let userList = await searchPeople(userName)
         res.send(userList)
-    } catch(err){
-        res.send({err: err})
+    } catch (err) {
+        res.send({ err: err })
     }
 })
 
