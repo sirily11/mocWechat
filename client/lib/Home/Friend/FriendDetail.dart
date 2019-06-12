@@ -20,6 +20,8 @@ class FriendDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(friend.friends == null || (!friend.friends.contains(userID) &&
+            !friend.userId.contains(userID)));
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
@@ -49,16 +51,22 @@ class FriendDetail extends StatelessWidget {
                 Divider(),
                 listRow("Description", friend.description),
                 Divider(),
-                friend.friends == null || !friend.friends.contains(userID) ?
-                MaterialButton(
-                  onPressed: () {
-                    addFriend(friend, context);
-                  },
-                  child: Text(
-                    "Add Friend",
-                    style: TextStyle(color: Colors.pink),
-                  ),
-                ) : Container()
+                // If user is your friend
+                // Or user is yourself
+                // then don't display the add friend button
+                friend.friends == null ||
+                        (!friend.friends.contains(userID) &&
+                            !friend.userId.contains(userID))
+                    ? MaterialButton(
+                        onPressed: () {
+                          addFriend(friend, context);
+                        },
+                        child: Text(
+                          "Add Friend",
+                          style: TextStyle(color: Colors.pink),
+                        ),
+                      )
+                    : Container()
               ],
             ),
           )

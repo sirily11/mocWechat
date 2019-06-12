@@ -22,9 +22,9 @@ class LoginPageState extends State<LoginPage>
     _tabController = new TabController(length: 2, vsync: this);
   }
 
-  success(String userId) {
+  success(String userId, String userName) {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-      return HomePage(userId);
+      return HomePage(userId, userName);
     }));
   }
 

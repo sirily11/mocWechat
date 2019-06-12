@@ -49,19 +49,26 @@ class SignUpWidgetState extends State<SignUpWidget> {
           "${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}",
       "sex": _sex[_selectedSex]
     };
-    final response = await http.post(url,
-        body: json.encode(body),
-        headers: {HttpHeaders.contentTypeHeader: "application/json"});
+    try{
+      final response = await http.post(url,
+          body: json.encode(body),
+          headers: {HttpHeaders.contentTypeHeader: "application/json"});
 
-    if (response.statusCode == 200) {
-      var result = SignUpObj.fromJson(json.decode(response.body));
-      success(result.userId);
-    } else {
-      var result = SignUpObj.fromJson(json.decode(response.body));
+      if (response.statusCode == 200) {
+        var result = SignUpObj.fromJson(json.decode(response.body));
+        success(result.userId, _userName);
+      } else {
+        var result = SignUpObj.fromJson(json.decode(response.body));
+        showDialog(
+            context: context,
+            builder: (context) => CustomAlertWidget("Error", result.err));
+      }
+    } on Exception catch(err){
       showDialog(
           context: context,
-          builder: (context) => CustomAlertWidget("Error", result.err));
+          builder: (context) => CustomAlertWidget("Connection error", "Cannot connect to the internet"));
     }
+
   }
 
   Future showSexPicker(BuildContext context) async {

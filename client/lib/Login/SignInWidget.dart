@@ -33,20 +33,27 @@ class SignInWidgetState extends State<SignInWidget> {
     var url = getURL("login");
     var body = {"userName": _userName, "password": _password};
     print(url);
-    final response = await http.post(url,
-        body: json.encode(body),
-        headers: {HttpHeaders.contentTypeHeader: "application/json"});
+    try{
+      final response = await http.post(url,
+          body: json.encode(body),
+          headers: {HttpHeaders.contentTypeHeader: "application/json"});
 
-    if (response.statusCode == 200) {
-      var result = SignUpObj.fromJson(json.decode(response.body));
-      success(result.userId);
-    } else {
-      var result = SignUpObj.fromJson(json.decode(response.body));
-      print(result.err);
+      if (response.statusCode == 200) {
+        var result = SignUpObj.fromJson(json.decode(response.body));
+        success(result.userId, _userName);
+      } else {
+        var result = SignUpObj.fromJson(json.decode(response.body));
+        print(result.err);
+        showDialog(
+            context: context,
+            builder: (context) => CustomAlertWidget("Login error", result.err));
+      }
+    } on Exception  catch(e){
       showDialog(
           context: context,
-          builder: (context) => CustomAlertWidget("Login error", result.err));
+          builder: (context) => CustomAlertWidget("Connection error", "Cannot connect to the internet"));
     }
+
   }
 
   void signIn() async {
