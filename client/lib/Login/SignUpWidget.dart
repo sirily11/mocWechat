@@ -41,7 +41,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
 
   // ignore: missing_return
   Future<SignUpObj> signUpReq() async {
-    var url = getURL("add/user");
+    var url = await getURL("add/user", context);
     var body = {
       "userName": _userName,
       "password": _password,

@@ -1,0 +1,4 @@
+{
+  "webSocketServer" : "ws://192.168.31.242:8000/hello",
+  "httpWebServer": "http://192.168.31.242:8000/"
+}

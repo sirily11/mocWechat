@@ -65,17 +65,30 @@ export class MessageQueue {
         }
     }
 
+    /**
+     * Get if there is message in memory
+     * @param receiver Receiver id
+     */
+    async hasMessageInMemory(receiver: string): Promise<boolean>{
+        return new Promise(async (resolve, reject)=>{
+            let messages = this.queues.get(receiver)
+            if(messages){
+                if(messages.length > 0){
+                    resolve(true)
+                } else{
+                    resolve(false)
+                }
+            }
+            resolve(false)
+        })
+    }
+
+    /**
+     *  Get if there is message in database
+     * @param receiver receiver id
+     */
     async hasMessage(receiver: string): Promise<boolean>{
         return new Promise(async (resolve, reject)=>{
-            // let messages = this.queues.get(receiver)
-            // if(messages){
-            //     if(messages.length > 0){
-            //         resolve(true)
-            //     } else{
-            //         resolve(false)
-            //     }
-            // }
-            // resolve(false)
             if(this.db){
                 let a  = await this.db.collection(settings.messageCollectionName).find({receiver: receiver}).toArray()
                 if(a.length > 0){
@@ -87,16 +100,29 @@ export class MessageQueue {
         })
     }
 
+    /**
+     * Add message to memory's queue
+     * @param newMessage new message
+     */
+    async addMessageInMemory(newMessage: Message): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            let messages = this.queues.get(newMessage.receiver)
+            if (messages) {
+                messages.push(newMessage)
+            } else {
+                messages = [newMessage]
+            }
+            this.queues.set(newMessage.receiver, messages)
+            resolve()
+        })
+    }
+
+    /**
+     * Add message to database
+     * @param newMessage new message
+     */
     async addMessage(newMessage: Message): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            // let messages = this.queues.get(newMessage.receiver)
-            // if (messages) {
-            //     messages.push(newMessage)
-            // } else {
-            //     messages = [newMessage]
-            // }
-            // this.queues.set(newMessage.receiver, messages)
-            // resolve()
             if(this.db){
                 this.db.collection(settings.messageCollectionName).insertOne(newMessage)
                 resolve()
@@ -107,21 +133,30 @@ export class MessageQueue {
     }
 
     /**
-     * Get message from message queue and remove it from the list
+     * Get message from memory and delete it
+     * @param receiver receiver's id
+     */
+    async getMessageInMemory(receiver: string): Promise<Message> {
+        return new Promise(async (resolve, reject) => {
+            let messages = this.queues.get(receiver)
+            if(messages){
+                let message = messages.shift()
+                if(message){
+                    resolve(message)
+                } else{
+                    reject()
+                }
+            } else{
+                reject()
+            }
+        })
+    }
+
+    /**
+     * Get message from database and remove it from the list
      */
     async getMessage(receiver: string): Promise<Message> {
         return new Promise(async (resolve, reject) => {
-            // let messages = this.queues.get(receiver)
-            // if(messages){
-            //     let message = messages.shift()
-            //     if(message){
-            //         resolve(message)
-            //     } else{
-            //         reject()
-            //     }
-            // } else{
-            //     reject()
-            // }
             if(this.db){
                 let message  = await this.db.collection(settings.messageCollectionName).findOneAndDelete({receiver: receiver})
                 resolve(message.value)
@@ -139,6 +174,5 @@ export function createNewMember(userID: string, members: Member[]): Member {
         }
     }
     let member = new Member(userID)
-    members.push(member)
     return member
 }

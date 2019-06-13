@@ -29,7 +29,7 @@ class FriendSearchPageState extends State<FriendSearchPage> {
   FriendSearchPageState(this.userID);
 
   Future<List<Friend>> searchFriend(String userName) async {
-    var url = getURL("search/user");
+    String url = await getURL("search/user", context);
     url = "$url?userName=$userName";
 
     final response = await http.get(url);
@@ -47,7 +47,7 @@ class FriendSearchPageState extends State<FriendSearchPage> {
   }
 
   Future addFriend(Friend friend, BuildContext c) async {
-    var url = getURL("add/friend");
+    String url = await getURL("add/friend", context);
     var body = {
       "user": {"_id": userID},
       "friend": {"_id": friend.userId}

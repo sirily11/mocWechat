@@ -16,44 +16,43 @@ const wss = new WebSocket.Server({ server: server, path: "/hello" });
 // Message queue
 const messageQueue = new MessageQueue()
 // Members
-let members : Member[] = []
+let members: Member[] = []
 
 
 wss.on('connection', async (ws: WebSocket, req) => {
     let userID = ""
-    if(req.url){
+    if (req.url) {
         userID = url.parse(req.url, true).query.userID.toString()
-        console.log("Connecting user", userID)
         let member = createNewMember(userID, members)
         member.addClient(ws)
-        let m = messageQueue.queues.get(member.userId)
-        if(m){
-            console.log("Number of unread message:",m.length)
+        if(!members.includes(member)){
+            console.log("Connecting user", userID)
+            members.push(member)
+            console.log("Number of online user", members.length)
         }
-        
-        while(await messageQueue.hasMessage(member.userId)){
+        while (await messageQueue.hasMessage(member.userId)) {
             let message = await messageQueue.getMessage(member.userId)
             member.send(message)
         }
-        console.log("Unread message sent")
     }
 
-    ws.on("close", ()=>{
+    ws.on("close", () => {
         console.log("Connection close")
-        for(let [i , member] of members.entries()){
-            if(member.userId === userID){
+        for (let [i, member] of members.entries()) {
+            if (member.userId === userID) {
                 members.splice(i, 1)
                 break
             }
         }
     })
-    
+
     ws.on('message', (msg: string) => {
-        let message : Message = JSON.parse(msg)
+        let message: Message = JSON.parse(msg)
         let sent = false
-        for(let member of members){
-            if(member.userId === message.receiver){
-                if(member.websocket){
+        for (let member of members) {
+            console.log(member.userId, message.receiver)
+            if (member.userId === message.receiver) {
+                if (member.websocket) {
                     member.websocket.send(JSON.stringify(message))
                     console.log("Sent message")
                     sent = true
@@ -61,10 +60,18 @@ wss.on('connection', async (ws: WebSocket, req) => {
                 }
             }
         }
-        if(!sent){
+        if (!sent) {
             messageQueue.addMessage(message)
             console.log("Receiver not online")
         }
+        let ret: Message = { 
+            receiver: message.sender, 
+            sender: message.receiver, 
+            messageBody: message.messageBody + " ok", 
+            time: message.time 
+        }
+
+        ws.send(JSON.stringify(ret))
     });
 });
 
@@ -120,7 +127,7 @@ app.get("/get/friends", async (req, res) => {
         let list: User[] = await getFriendList({ _id: userID })
         res.send(list)
     } catch (err) {
-        res.send({ err: err })
+        res.send([])
     }
 })
 
