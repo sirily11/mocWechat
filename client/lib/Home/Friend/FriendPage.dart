@@ -1,36 +1,36 @@
 import 'package:client/Home/BottomNavigation.dart';
 import 'package:client/Home/Chat/ChatDetail.dart';
-import 'package:client/Home/Chat/MessageObj.dart';
+import 'package:client/Home/Chat/data/MessageObj.dart';
 import 'package:client/Home/Friend/FriendDetail.dart';
 import 'package:client/Home/Friend/FriendObj.dart';
 import 'package:client/url.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:convert';
+import 'package:provider/provider.dart';
 
 import 'package:http/http.dart' as http;
 
 class FriendPage extends StatefulWidget {
   final String userID;
   final String userName;
-  final List<Message> messages;
   final Function sendMessage;
 
-  FriendPage(this.userID, this.userName, this.messages, this.sendMessage);
+  FriendPage(this.userID, this.userName, this.sendMessage);
 
   @override
   State<StatefulWidget> createState() {
-    return FriendPageState(this.userID, this.userName, this.messages, this.sendMessage);
+    return FriendPageState(
+        this.userID, this.userName, this.sendMessage);
   }
 }
 
 class FriendPageState extends State<FriendPage> {
   final String userID;
   final String userName;
-  final List<Message> _messages;
   final Function sendMessage;
 
-  FriendPageState(this.userID, this.userName, this._messages, this.sendMessage);
+  FriendPageState(this.userID, this.userName, this.sendMessage);
 
   Future<List<Friend>> getFriendList() async {
     var url = await getURL("get/friends", context);
@@ -59,7 +59,7 @@ class FriendPageState extends State<FriendPage> {
           return ListTile(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return ChatDetail(userID, userName, friends[index], this._messages, this.sendMessage);
+                return ChatDetail(userID, userName, friends[index], this.sendMessage);
               }));
             },
             leading: CircleAvatar(

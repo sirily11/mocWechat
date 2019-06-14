@@ -1,8 +1,9 @@
-import 'package:client/Home/Chat/MessageObj.dart';
+import 'package:client/Home/Chat/data/MessageObj.dart';
 import 'package:client/Home/Friend/FriendObj.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+/// Message's list and bubble
 class ChatMessage extends StatelessWidget {
   final Message message;
   final Friend friend;

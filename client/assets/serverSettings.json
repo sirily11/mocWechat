@@ -1,4 +1,5 @@
 {
-  "webSocketServer" : "ws://192.168.31.242:8000/hello",
-  "httpWebServer": "http://192.168.31.242:8000/"
+  "webSocketServer" : "ws://192.168.1.70:8000/hello",
+  "httpWebServer": "http://192.168.1.70:8000/",
+  "databasePath": "Chat.db"
 }

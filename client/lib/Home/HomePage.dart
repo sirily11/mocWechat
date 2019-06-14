@@ -3,16 +3,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:client/Home/BottomNavigation.dart';
 import 'package:client/Home/Chat/ChatPage.dart';
-import 'package:client/Home/Chat/MessageObj.dart';
+import 'package:client/Home/Chat/data/MessageObj.dart';
 import 'package:client/Home/Friend/FriendPage.dart';
 import 'package:client/Home/Friend/FriendSearchPage.dart';
 import 'package:client/Home/PopUpMenu.dart';
 import 'package:client/Login/AlertWidget.dart';
 import 'package:client/Login/Login.dart';
+import 'package:client/States/MessageState.dart';
 import 'package:client/url.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:web_socket_channel/io.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -29,9 +30,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final String _userId;
   final String _userName;
-
   WebSocket _socket;
-  List<Message> _messages = [];
   bool _isReConnecting = false;
 
   final List<Nav> _navItems = [
@@ -80,12 +79,11 @@ class HomePageState extends State<HomePage> {
   }
 
   void _onMessage(dynamic data) {
-    setState(() {
+      var messageState = Provider.of<MessageState>(context);
       var jsonData = json.decode(data);
       Message message = Message.fromJson(jsonData);
-      _messages.add(message);
+      messageState.addMessage(message);
       print("Get new data ${message.messageBody}");
-    });
   }
 
   Future _onDisconnected() async {
@@ -108,9 +106,6 @@ class HomePageState extends State<HomePage> {
 
   /// send message through webSocket
   void sendMessage(Message message) {
-    setState(() {
-      _messages.add(message);
-    });
     _socket.add(json.encode(message));
   }
 
@@ -152,7 +147,7 @@ class HomePageState extends State<HomePage> {
         break;
 
       case 1:
-        return FriendPage(_userId, _userName, this._messages, this.sendMessage);
+        return FriendPage(_userId, _userName, this.sendMessage);
         break;
     }
   }
