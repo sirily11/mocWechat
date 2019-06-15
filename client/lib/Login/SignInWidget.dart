@@ -26,18 +26,20 @@ class SignInWidgetState extends State<SignInWidget> {
   final double padding;
   final formKey = GlobalKey<FormState>();
   final Function success;
+  bool isLoading = false;
 
   SignInWidgetState(this.padding, this.success);
 
   Future signInReq() async {
     var url = await getURL("login", context);
     var body = {"userName": _userName, "password": _password};
-    print(url);
-    try{
+    setState(() {
+      isLoading = true;
+    });
+    try {
       final response = await http.post(url,
           body: json.encode(body),
           headers: {HttpHeaders.contentTypeHeader: "application/json"});
-
       if (response.statusCode == 200) {
         var result = SignUpObj.fromJson(json.decode(response.body));
         success(result.userId, _userName);
@@ -48,12 +50,13 @@ class SignInWidgetState extends State<SignInWidget> {
             context: context,
             builder: (context) => CustomAlertWidget("Login error", result.err));
       }
-    } on Exception  catch(e){
+    } on Exception catch (e) {
+      print(e);
       showDialog(
           context: context,
-          builder: (context) => CustomAlertWidget("Connection error", "Cannot connect to the internet"));
+          builder: (context) => CustomAlertWidget(
+              "Connection error", "Cannot connect to the internet"));
     }
-
   }
 
   void signIn() async {
@@ -89,9 +92,19 @@ class SignInWidgetState extends State<SignInWidget> {
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: MaterialButton(
-                    onPressed: signIn,
-                    child: Text("Login"),
+                  child: Row(
+                    children: <Widget>[
+                      isLoading
+                          ? Container(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 3,))
+                          : Container(),
+                      MaterialButton(
+                        onPressed: signIn,
+                        child: Text("Login"),
+                      )
+                    ],
                   ),
                 )
               ],

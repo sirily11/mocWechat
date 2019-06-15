@@ -1,17 +1,25 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 Future<String> getURL(String path, BuildContext context) async {
-  var value = await DefaultAssetBundle.of(context).loadString("assets/serverSettings.json");
+  final directory = await getApplicationDocumentsDirectory();
+  var file = File("${directory.path}/serverSettings.json");
+  var value = await file.readAsString();
   final settings = json.decode(value);
   var base = settings['httpWebServer'];
-  return base + path;
+  var port = settings['httpPort'];
+  return "$base:$port/$path";
 }
 
 Future<String> getWebSocketURL(String userID, BuildContext context) async{
-  var value = await DefaultAssetBundle.of(context).loadString("assets/serverSettings.json");
-  final settings = json.decode(value);
+  final directory = await getApplicationDocumentsDirectory();
+  var file = File("${directory.path}/serverSettings.json");
+  var value = await file.readAsString();final settings = json.decode(value);
   var base = settings['webSocketServer'];
-  return "$base?userID=$userID";
+  var port = settings['webSocketPort'];
+  return "$base:$port?userID=$userID";
 }

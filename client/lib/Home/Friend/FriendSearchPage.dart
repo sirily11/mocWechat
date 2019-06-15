@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:client/Home/Friend/FriendDetail.dart';
-import 'package:client/Home/Friend/FriendObj.dart';
+import 'package:client/Home/Friend/data/FriendObj.dart';
 import 'package:client/Login/AlertWidget.dart';
 import 'package:client/url.dart';
 import 'package:flutter/material.dart';

@@ -1,6 +1,8 @@
 import 'package:client/Home/HomePage.dart';
+import 'package:client/Home/PopUpMenu.dart';
 import 'package:client/Login/SignInWidget.dart';
 import 'package:client/Login/SignUpWidget.dart';
+import 'package:client/settings/SettingPage.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -28,11 +30,20 @@ class LoginPageState extends State<LoginPage>
     }));
   }
 
+  _settings(){
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return SettingPage();
+    }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: Text(_currentMode == 0 ? "Login" : "Sign Up"),
+          actions: <Widget>[
+            PopUpMenu(["Settings"], [_settings])
+          ],
           bottom: TabBar(
             onTap: (int index) {
               setState(() {

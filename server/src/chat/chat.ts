@@ -7,6 +7,7 @@ import { settings } from "../settings/settings";
 export interface Message {
     sender: string,
     receiver: string,
+    receiverName: string,
     messageBody: string,
     time: string
 }

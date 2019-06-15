@@ -1,8 +1,17 @@
+import 'package:client/Home/Chat/data/ChatroomObj.dart';
 import 'package:flutter/widgets.dart';
 import 'package:client/Home/Chat/data/MessageObj.dart';
 
 class MessageState with ChangeNotifier{
   List<Message> _messages = [];
+  ChatRoom _chatRoom;
+
+
+  ChatRoom get chatRoom => _chatRoom;
+
+  set chatRoom(ChatRoom value) {
+    _chatRoom = value;
+  }
 
   List<Message> get messages{
     if(_messages == null){
@@ -26,6 +35,5 @@ class MessageState with ChangeNotifier{
   set messages(List<Message> value) {
     _messages = value;
   }
-
 
 }

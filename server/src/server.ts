@@ -12,7 +12,7 @@ app.use(express.json())
 //initialize a simple http server
 const server = http.createServer(app);
 //initialize the WebSocket server instance
-const wss = new WebSocket.Server({ server: server, path: "/hello" });
+const wss = new WebSocket.Server({ server: server, path: "" });
 // Message queue
 const messageQueue = new MessageQueue()
 // Members
@@ -22,17 +22,21 @@ let members: Member[] = []
 wss.on('connection', async (ws: WebSocket, req) => {
     let userID = ""
     if (req.url) {
-        userID = url.parse(req.url, true).query.userID.toString()
-        let member = createNewMember(userID, members)
-        member.addClient(ws)
-        if(!members.includes(member)){
-            console.log("Connecting user", userID)
-            members.push(member)
-            console.log("Number of online user", members.length)
-        }
-        while (await messageQueue.hasMessage(member.userId)) {
-            let message = await messageQueue.getMessage(member.userId)
-            member.send(message)
+        try{
+            userID = url.parse(req.url, true).query.userID.toString()
+            let member = createNewMember(userID, members)
+            member.addClient(ws)
+            if(!members.includes(member)){
+                console.log("Connecting user", userID)
+                members.push(member)
+                console.log("Number of online user", members.length)
+            }
+            while (await messageQueue.hasMessage(member.userId)) {
+                let message = await messageQueue.getMessage(member.userId)
+                member.send(message)
+            }
+        } catch(err){
+            console.error(err);
         }
     }
 
@@ -66,12 +70,13 @@ wss.on('connection', async (ws: WebSocket, req) => {
         }
         let ret: Message = { 
             receiver: message.sender, 
+            receiverName: message.receiver,
             sender: message.receiver, 
             messageBody: message.messageBody + " ok", 
             time: message.time 
         }
 
-        // ws.send(JSON.stringify(ret))
+        ws.send(JSON.stringify(ret))
     });
 });
 
@@ -139,6 +144,10 @@ app.get("/search/user", async (req, res) => {
     } catch (err) {
         res.send({ err: err })
     }
+})
+
+app.get("/test", async (req, res) =>{
+    res.send("ok")
 })
 
 //start our server

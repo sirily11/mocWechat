@@ -1,8 +1,10 @@
 import 'package:client/Home/BottomNavigation.dart';
 import 'package:client/Home/Chat/ChatDetail.dart';
+import 'package:client/Home/Chat/data/ChatroomObj.dart';
 import 'package:client/Home/Chat/data/MessageObj.dart';
 import 'package:client/Home/Friend/FriendDetail.dart';
-import 'package:client/Home/Friend/FriendObj.dart';
+import 'package:client/Home/Friend/data/FriendObj.dart';
+import 'package:client/States/MessageState.dart';
 import 'package:client/url.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -20,8 +22,7 @@ class FriendPage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return FriendPageState(
-        this.userID, this.userName, this.sendMessage);
+    return FriendPageState(this.userID, this.userName, this.sendMessage);
   }
 }
 
@@ -29,8 +30,21 @@ class FriendPageState extends State<FriendPage> {
   final String userID;
   final String userName;
   final Function sendMessage;
+  final ChatRoomProvider _chatRoomProvider = ChatRoomProvider();
+  List<Friend> _friends;
 
   FriendPageState(this.userID, this.userName, this.sendMessage);
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(milliseconds: 10), () async{
+      var friends = await getFriendList();
+      setState(() {
+        _friends = friends;
+      });
+    });
+  }
 
   Future<List<Friend>> getFriendList() async {
     var url = await getURL("get/friends", context);
@@ -52,18 +66,24 @@ class FriendPageState extends State<FriendPage> {
   Widget renderList(List<Friend> friends) {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
-        (context, i) {
+            (context, i) {
           if (i.isOdd) return Divider();
           final index = i ~/ 2;
+          var friend = friends[index];
 
           return ListTile(
-            onTap: () {
+            onTap: () async {
+              ChatRoom chatRoom = ChatRoom(sender: userID, receiver: friend.userId, receiverName: friend.userName);
+              await _chatRoomProvider.open(context);
+              chatRoom = await _chatRoomProvider.addChatRoom(chatRoom);
+              Provider.of<MessageState>(context).chatRoom = chatRoom;
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return ChatDetail(userID, userName, friends[index], this.sendMessage);
+                return ChatDetail(
+                    userID, userName, friend, this.sendMessage);
               }));
             },
             leading: CircleAvatar(
-              backgroundColor: friends[index].sex == "female"
+              backgroundColor: friend.sex == "female"
                   ? Colors.pink
                   : Colors.blue[800],
               foregroundColor: Colors.white,
@@ -77,6 +97,7 @@ class FriendPageState extends State<FriendPage> {
     );
   }
 
+  /// Contact card which indicate the current user
   Widget renderContactCard() {
     return SliverList(
       delegate: SliverChildListDelegate([
@@ -104,24 +125,23 @@ class FriendPageState extends State<FriendPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: getFriendList(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.data == null) {
-          return Container(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
+        if(_friends == null){
+          return Center(child: CircularProgressIndicator(semanticsLabel: "Loading friends",),);
         }
-        List<Friend> friends = snapshot.data;
-        return CustomScrollView(
-          slivers: <Widget>[
-            renderContactCard(),
-            renderList(friends),
-          ],
+        return RefreshIndicator(
+          onRefresh: () async{
+            var friends = await getFriendList();
+            setState(() {
+              _friends = friends;
+            });
+          },
+          child: CustomScrollView(
+            slivers: <Widget>[
+              renderContactCard(),
+              renderList(_friends),
+            ],
+          ),
         );
-      },
-    );
+
   }
 }

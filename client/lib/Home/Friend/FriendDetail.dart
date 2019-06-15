@@ -1,4 +1,4 @@
-import 'package:client/Home/Friend/FriendObj.dart';
+import 'package:client/Home/Friend/data/FriendObj.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
