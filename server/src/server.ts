@@ -76,7 +76,7 @@ wss.on('connection', async (ws: WebSocket, req) => {
             time: message.time 
         }
 
-        ws.send(JSON.stringify(ret))
+        // ws.send(JSON.stringify(ret))
     });
 });
 

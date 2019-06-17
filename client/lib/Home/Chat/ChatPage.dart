@@ -104,7 +104,7 @@ class ChatCard extends StatelessWidget {
               Divider(),
               ListTile(
                 leading: CircleAvatar(
-                  child: Text(_chatRoom.receiverName[0].toUpperCase()),
+                  child: Text(_chatRoom.receiverName != null ? _chatRoom.receiverName[0].toUpperCase() : ""),
                 ),
                 title: Text(_chatRoom.receiverName),
                 subtitle: Text(
