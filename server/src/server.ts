@@ -151,6 +151,6 @@ app.get("/test", async (req, res) =>{
 })
 
 //start our server
-server.listen(8000, () => {
+server.listen(7000, () => {
     console.log(`server start`);
 });
