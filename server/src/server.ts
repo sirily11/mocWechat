@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
 import * as url from "url"
+import * as cors from "cors"
 import { User } from './userObj';
 import { addUser, init, login, addFriend, getFriendList, searchPeople } from './user';
 import { MessageQueue, Member, Message, createNewMember } from './chat/chat';
@@ -9,6 +10,7 @@ import { MessageQueue, Member, Message, createNewMember } from './chat/chat';
 
 const app = express();
 app.use(express.json())
+app.use(cors())
 //initialize a simple http server
 const server = http.createServer(app);
 //initialize the WebSocket server instance
@@ -22,11 +24,11 @@ let members: Member[] = []
 wss.on('connection', async (ws: WebSocket, req) => {
     let userID = ""
     if (req.url) {
-        try{
+        try {
             userID = url.parse(req.url, true).query.userID.toString()
             let member = createNewMember(userID, members)
             member.addClient(ws)
-            if(!members.includes(member)){
+            if (!members.includes(member)) {
                 console.log("Connecting user", userID)
                 members.push(member)
                 console.log("Number of online user", members.length)
@@ -35,7 +37,7 @@ wss.on('connection', async (ws: WebSocket, req) => {
                 let message = await messageQueue.getMessage(member.userId)
                 member.send(message)
             }
-        } catch(err){
+        } catch (err) {
             console.error(err);
         }
     }
@@ -68,12 +70,12 @@ wss.on('connection', async (ws: WebSocket, req) => {
             messageQueue.addMessage(message)
             console.log("Receiver not online")
         }
-        let ret: Message = { 
-            receiver: message.sender, 
+        let ret: Message = {
+            receiver: message.sender,
             receiverName: message.receiver,
-            sender: message.receiver, 
-            messageBody: message.messageBody + " ok", 
-            time: message.time 
+            sender: message.receiver,
+            messageBody: message.messageBody + " ok",
+            time: message.time
         }
 
         // ws.send(JSON.stringify(ret))
@@ -130,6 +132,8 @@ app.get("/get/friends", async (req, res) => {
     let userID: string = req.query.userID
     try {
         let list: User[] = await getFriendList({ _id: userID })
+        list.forEach((u) => { u.userID = u._id })
+        console.log(list)
         res.send(list)
     } catch (err) {
         res.send([])
@@ -140,13 +144,14 @@ app.get("/search/user", async (req, res) => {
     let userName: string = req.query.userName
     try {
         let userList = await searchPeople(userName)
+        userList.forEach((u) => { u.userID = u._id })
         res.send(userList)
     } catch (err) {
         res.send({ err: err })
     }
 })
 
-app.get("/test", async (req, res) =>{
+app.get("/test", async (req, res) => {
     res.send("ok")
 })
 
