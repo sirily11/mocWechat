@@ -1,0 +1,6 @@
+[submodule "web/open-message/typings-react-desktop"]
+	path = web/open-message/typings-react-desktop
+	url = https://github.com/erichiller/typings-react-desktop.git
+[submodule "web/open-message/src/components/typings-react-desktop"]
+	path = web/open-message/src/components/typings-react-desktop
+	url = https://github.com/erichiller/typings-react-desktop.git
