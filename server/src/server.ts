@@ -27,6 +27,7 @@ wss.on('connection', async (ws: WebSocket, req) => {
         try {
             userID = url.parse(req.url, true).query.userID.toString()
             let member = createNewMember(userID, members)
+            console.log(member)
             member.addClient(ws)
             if (!members.includes(member)) {
                 console.log("Connecting user", userID)
@@ -56,7 +57,6 @@ wss.on('connection', async (ws: WebSocket, req) => {
         let message: Message = JSON.parse(msg)
         let sent = false
         for (let member of members) {
-            console.log(member.userId, message.receiver)
             if (member.userId === message.receiver) {
                 if (member.websocket) {
                     member.websocket.send(JSON.stringify(message))
@@ -92,7 +92,7 @@ app.post("/add/user", async (req, res) => {
         if (user.userName && user.password) {
             await init()
             let uid = await addUser(user)
-            res.send({ userId: uid })
+            res.send({ userID: uid })
         } else {
             res.send({ err: "Data not vaild" })
         }
@@ -109,7 +109,7 @@ app.post("/login", async (req, res) => {
     try {
         let uid = await login(userName, password)
         console.log("Login")
-        res.send({ userId: uid })
+        res.send({ userID: uid })
     } catch (err) {
         console.log(err)
         res.status(400).send({ err: err })

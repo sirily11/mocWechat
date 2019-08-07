@@ -36,6 +36,10 @@ export default function SearchFriend(props: Props) {
   const [friends, setFriends] = useState(f);
   const context = useContext(FriendContext);
   const userContext = useContext(UserContext);
+  const friendContext = useContext(FriendContext);
+
+  const friendList = friendContext.friends.map(f => f.userID);
+
   return (
     <Dialog
       open={props.open}
@@ -61,7 +65,11 @@ export default function SearchFriend(props: Props) {
         />
         <List>
           {friends
-            .filter(f => f.userID !== userContext.userID)
+            .filter(
+              f =>
+                f.userID !== userContext.userID &&
+                !friendList.includes(f.userID)
+            )
             .map(f => {
               return (
                 <ListItem key={f.userID}>
@@ -87,6 +95,7 @@ export default function SearchFriend(props: Props) {
                         icon="add"
                         onClick={async () => {
                           await context.addFriend(f);
+                          friendContext.addFriend(f);
                           props.setOpen(false);
                         }}
                       />

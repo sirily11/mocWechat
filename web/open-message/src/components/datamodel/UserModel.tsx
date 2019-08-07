@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { User } from "../../../../../server/src/userObj";
 import { NetworkManeger } from "./utils";
+import { da } from "date-fns/esm/locale";
 
 interface State {
   status: "Sign Up" | "Login";
@@ -13,6 +14,7 @@ interface State {
   message?: string;
   login(): void;
   signUp(): void;
+  signOut(): void;
   getState(): State;
   setUserName(userName: string): void;
   setpassword(password: string): void;
@@ -38,7 +40,9 @@ export default class UserProvider extends Component<Props, State> {
       setpassword: this.setPassword,
       setUserName: this.setUserName,
       getState: this.getState,
-      setStatus: this.setStatus
+      setStatus: this.setStatus,
+      dateOfBirth: new Date().toUTCString(),
+      signOut: this.signOut
     };
   }
 
@@ -87,8 +91,14 @@ export default class UserProvider extends Component<Props, State> {
     }
   };
 
+  signOut = () => {
+    localStorage.removeItem("userID");
+    this.setState({ isLogin: false });
+  };
+
   signUp = async () => {
-    const { userName, password, dateOfBirth, sex } = this.state;
+    const { userName, password, sex, dateOfBirth } = this.state;
+    console.log(this.state);
     if (
       userName === "" ||
       password === "" ||
@@ -99,7 +109,7 @@ export default class UserProvider extends Component<Props, State> {
       return;
     }
     try {
-      let networkManager = new NetworkManeger<User>("login");
+      let networkManager = new NetworkManeger<User>("add/user");
       let user = await networkManager.post({
         userName,
         password,
@@ -107,6 +117,7 @@ export default class UserProvider extends Component<Props, State> {
         sex
       });
       this.setState({ userID: user.userID, isLogin: true });
+      console.log(user);
       localStorage.setItem("userID", user.userID ? user.userID : "");
     } catch (err) {
       this.setState({
@@ -116,6 +127,7 @@ export default class UserProvider extends Component<Props, State> {
   };
 
   setDateOfBirth = (dateOfBirth: string) => {
+    console.log(dateOfBirth);
     this.setState({ dateOfBirth: dateOfBirth });
   };
 
@@ -144,7 +156,8 @@ const context: State = {
   setpassword: () => {},
   setUserName: () => {},
   getState: () => context,
-  setStatus: () => {}
+  setStatus: () => {},
+  signOut: () => {}
 };
 
 export const UserContext = React.createContext(context);

@@ -102,10 +102,10 @@ export function SignUp() {
                   placeholder="Select Sex"
                   fluid
                   selection
-                  value={context.getState().dateOfBirth}
+                  value={context.getState().sex}
                   options={options}
                   onChange={(e, { value }) => {
-                    context.setDateOfBirth(value as string);
+                    context.setSex(value as string);
                   }}
                 />
               </div>
@@ -117,9 +117,9 @@ export function SignUp() {
                   value={selectedDate}
                   format="yyyy-MM-dd"
                   onChange={(date, value) => {
-                    if (value && date) {
+                    if (date) {
                       handleDateChange(date);
-                      context.setDateOfBirth(value);
+                      context.setDateOfBirth(date.toUTCString());
                     }
                   }}
                   KeyboardButtonProps={{
@@ -138,7 +138,7 @@ export function SignUp() {
                   context.setStatus("Login");
                 }}
               >
-                {"Sign Up"}
+                {"Sign In"}
               </Link>
             </Grid>
           </Grid>

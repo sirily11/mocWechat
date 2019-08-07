@@ -14,3 +14,11 @@ export interface AddFriendRequest {
         _id: string
     }
 }
+
+export interface Message {
+    sender: string,
+    receiver: string,
+    receiverName?: string,
+    messageBody: string,
+    time: string
+}

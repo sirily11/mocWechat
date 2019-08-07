@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   root: {
     width: "100%",
     position: "absolute",
-    bottom: "70px",
+    bottom: "60px",
     left: 0
   }
 });
@@ -33,7 +33,7 @@ export default function LeftPage() {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
   return (
-    <div className="h-100 w-100">
+    <div className="h-100 w-100" style={{ position: "relative" }}>
       {renderPage(value)}
       <BottomNavigation
         className={classes.root}

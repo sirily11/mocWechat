@@ -5,7 +5,9 @@ import { AddFriendRequest } from "./userObjects";
 
 interface State {
   friends: User[];
+  chattingUser?: User;
   addFriend(friend: User): void;
+  startChatting(friend: User): void;
 }
 
 interface Props {}
@@ -15,7 +17,8 @@ export default class FriendProvider extends Component<Props, State> {
     super(props);
     this.state = {
       friends: [],
-      addFriend: this.addFriend
+      addFriend: this.addFriend,
+      startChatting: this.startChatting
     };
   }
 
@@ -34,7 +37,7 @@ export default class FriendProvider extends Component<Props, State> {
     }, 100);
   }
 
-  async addFriend(friend: User) {
+  addFriend = async (friend: User) => {
     let networkManager = new NetworkManeger<AddFriendRequest>("add/friend");
     let userID = localStorage.getItem("userID");
     if (friend.userID && userID) {
@@ -43,7 +46,11 @@ export default class FriendProvider extends Component<Props, State> {
         friend: { _id: friend.userID }
       });
     }
-  }
+  };
+
+  startChatting = (friend: User) => {
+    this.setState({ chattingUser: friend });
+  };
 
   render() {
     return (
@@ -56,7 +63,8 @@ export default class FriendProvider extends Component<Props, State> {
 
 const context: State = {
   friends: [],
-  addFriend: (friend: User) => {}
+  addFriend: (friend: User) => {},
+  startChatting: (friend: User) => {}
 };
 
 export const FriendContext = React.createContext(context);

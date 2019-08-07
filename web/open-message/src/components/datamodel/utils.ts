@@ -5,6 +5,12 @@ export function getURL(path: string): string {
     return `${base}${path}`
 }
 
+export function getWebSocketURL(userID: string): string {
+    let base = "ws://localhost:7000/"
+
+    return `${base}?userID=${userID}`
+}
+
 export class NetworkManeger<T>{
     path: string;
 
