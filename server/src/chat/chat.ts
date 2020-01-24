@@ -9,7 +9,8 @@ export interface Message {
     receiver: string,
     receiverName: string,
     messageBody: string,
-    time: string
+    time: string,
+    type: "text" | "image" | "audio" | "video" | "url"
 }
 
 
