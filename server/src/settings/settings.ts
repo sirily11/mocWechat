@@ -4,5 +4,5 @@ export let settings = {
     databaseName: "chatting",
     password: "1234",
     userName: "sirily11",
-    url: "mongodb://localhost:27017/"
+    url: "mongodb://mongo:27017/"
 }

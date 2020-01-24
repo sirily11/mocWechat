@@ -22,14 +22,25 @@ export class Member {
         this.userId = userId;
     }
 
+    /**
+     * Websocket client
+     * @param client Websocket client
+     */
     addClient(client: WebSocket | any) {
         this.websocket = client
     }
 
+    /**
+     * Remove websocket client
+     */
     removeClient() {
         this.websocket = undefined
     }
 
+    /**
+     * Send message to the current client
+     * @param message Message
+     */
     send(message: Message): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.websocket) {
@@ -50,19 +61,24 @@ export class MessageQueue {
 
     constructor() {
         this.queues = new Map()
-        MongoClient.connect(settings.url, {
-            useNewUrlParser: true,
-            auth: { user: settings.userName, password: settings.password }
-        }).then((db)=>{
-            this.db = db.db(settings.databaseName)
-        }).catch((err)=>{
-            console.log(err)
-        })
+        console.log("Waiting for mongodb container set up")
+        setTimeout(() => {
+            MongoClient.connect(settings.url, {
+                useNewUrlParser: true,
+                auth: { user: settings.userName, password: settings.password }
+            }).then((db) => {
+                this.db = db.db(settings.databaseName)
+                console.log("Server is up")
+            }).catch((err) => {
+                console.log(err)
+            })
+        }, 15000)
+
     }
 
-    async deleteAll(){
-        if(this.db){
-           await this.db.dropDatabase()
+    async deleteAll() {
+        if (this.db) {
+            await this.db.dropDatabase()
         }
     }
 
@@ -70,13 +86,13 @@ export class MessageQueue {
      * Get if there is message in memory
      * @param receiver Receiver id
      */
-    async hasMessageInMemory(receiver: string): Promise<boolean>{
-        return new Promise(async (resolve, reject)=>{
+    async hasMessageInMemory(receiver: string): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
             let messages = this.queues.get(receiver)
-            if(messages){
-                if(messages.length > 0){
+            if (messages) {
+                if (messages.length > 0) {
                     resolve(true)
-                } else{
+                } else {
                     resolve(false)
                 }
             }
@@ -88,13 +104,13 @@ export class MessageQueue {
      *  Get if there is message in database
      * @param receiver receiver id
      */
-    async hasMessage(receiver: string): Promise<boolean>{
-        return new Promise(async (resolve, reject)=>{
-            if(this.db){
-                let a  = await this.db.collection(settings.messageCollectionName).find({receiver: receiver}).toArray()
-                if(a.length > 0){
+    async hasMessage(receiver: string): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            if (this.db) {
+                let a = await this.db.collection(settings.messageCollectionName).find({ receiver: receiver }).toArray()
+                if (a.length > 0) {
                     resolve(true)
-                } else{
+                } else {
                     resolve(false)
                 }
             }
@@ -124,10 +140,10 @@ export class MessageQueue {
      */
     async addMessage(newMessage: Message): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            if(this.db){
+            if (this.db) {
                 this.db.collection(settings.messageCollectionName).insertOne(newMessage)
                 resolve()
-            } else{
+            } else {
                 reject("No database")
             }
         })
@@ -140,14 +156,14 @@ export class MessageQueue {
     async getMessageInMemory(receiver: string): Promise<Message> {
         return new Promise(async (resolve, reject) => {
             let messages = this.queues.get(receiver)
-            if(messages){
+            if (messages) {
                 let message = messages.shift()
-                if(message){
+                if (message) {
                     resolve(message)
-                } else{
+                } else {
                     reject()
                 }
-            } else{
+            } else {
                 reject()
             }
         })
@@ -158,10 +174,10 @@ export class MessageQueue {
      */
     async getMessage(receiver: string): Promise<Message> {
         return new Promise(async (resolve, reject) => {
-            if(this.db){
-                let message  = await this.db.collection(settings.messageCollectionName).findOneAndDelete({receiver: receiver})
+            if (this.db) {
+                let message = await this.db.collection(settings.messageCollectionName).findOneAndDelete({ receiver: receiver })
                 resolve(message.value)
-            } else{
+            } else {
                 reject("No database")
             }
         })

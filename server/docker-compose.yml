@@ -1,10 +1,21 @@
-version: '3.1'
+version: "3.1"
 
 services:
+  websocket:
+    build: .
+    volumes:
+      - ./src:/home/websocket-server/src
+    container_name: websocket-express
+    ports:
+      - 80:80
+    depends_on:
+      - mongo
 
   mongo:
     image: mongo
     restart: always
+    volumes:
+      - ./data:/data/db
     ports:
       - 27017:27017
       - 27019:27019

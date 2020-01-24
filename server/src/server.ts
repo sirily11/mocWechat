@@ -27,13 +27,13 @@ wss.on('connection', async (ws: WebSocket, req) => {
         try {
             userID = url.parse(req.url, true).query.userID.toString()
             let member = createNewMember(userID, members)
-            console.log(member)
             member.addClient(ws)
             if (!members.includes(member)) {
                 console.log("Connecting user", userID)
                 members.push(member)
                 console.log("Number of online user", members.length)
             }
+            /// send all messages in the message queue
             while (await messageQueue.hasMessage(member.userId)) {
                 let message = await messageQueue.getMessage(member.userId)
                 member.send(message)
@@ -53,7 +53,7 @@ wss.on('connection', async (ws: WebSocket, req) => {
         }
     })
 
-    ws.on('message', (msg: string) => {
+    ws.on('message', async (msg: string) => {
         let message: Message = JSON.parse(msg)
         let sent = false
         for (let member of members) {
@@ -67,16 +67,16 @@ wss.on('connection', async (ws: WebSocket, req) => {
             }
         }
         if (!sent) {
-            messageQueue.addMessage(message)
+            await messageQueue.addMessage(message)
             console.log("Receiver not online")
         }
-        let ret: Message = {
-            receiver: message.sender,
-            receiverName: message.receiver,
-            sender: message.receiver,
-            messageBody: message.messageBody + " ok",
-            time: message.time
-        }
+        // let ret: Message = {
+        //     receiver: message.sender,
+        //     receiverName: message.receiver,
+        //     sender: message.receiver,
+        //     messageBody: message.messageBody + " ok",
+        //     time: message.time
+        // }
 
         // ws.send(JSON.stringify(ret))
     });
@@ -156,6 +156,6 @@ app.get("/test", async (req, res) => {
 })
 
 //start our server
-server.listen(7000, () => {
-    console.log(`server start`);
+server.listen(80, () => {
+    console.log(`server start, waiting for database`);
 });
