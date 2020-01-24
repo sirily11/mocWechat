@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/chatmodel.dart';
+import 'package:message_mobile/models/homePageModel.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
+import 'package:message_mobile/pages/home/homepage.dart';
 import 'package:message_mobile/pages/login/loginpage.dart';
 import 'package:provider/provider.dart';
 
@@ -17,15 +19,19 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SignInPageModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => HomePageModel(),
         )
       ],
       child: MaterialApp(
-        darkTheme: ThemeData.dark().copyWith(highlightColor: Colors.teal),
-        themeMode: ThemeMode.light,
+        darkTheme: ThemeData.dark().copyWith(
+            highlightColor: Colors.teal, backgroundColor: Colors.teal),
+        themeMode: ThemeMode.dark,
         title: 'Chat App',
         theme: ThemeData(
             primarySwatch: Colors.blue, highlightColor: Colors.yellow),
-        home: LoginPage(),
+        home: HomePage(),
       ),
     );
   }
