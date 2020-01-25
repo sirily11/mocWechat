@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:json_schema_form/JSONSchemaForm.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
+import 'package:message_mobile/pages/home/homepage.dart';
 import 'package:message_mobile/utils/utils.dart';
 
 class LoginPanel extends StatelessWidget {
@@ -9,6 +11,15 @@ class LoginPanel extends StatelessWidget {
     return JSONSchemaForm(
       schemaName: "Sign Up",
       schema: getSchema(LoginPageSelection.login),
+      onSubmit: (value) {
+        Navigator.pushReplacement(
+          context,
+          CupertinoPageRoute(
+            fullscreenDialog: true,
+            builder: (c) => HomePage(),
+          ),
+        );
+      },
     );
   }
 }

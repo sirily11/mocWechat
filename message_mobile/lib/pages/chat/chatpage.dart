@@ -9,15 +9,23 @@ import 'package:provider/provider.dart';
 class ChatPage extends StatelessWidget {
   /// Owner of the chatroom
   final User owner;
+  final List<Message> messages;
 
   /// The user who is chatting with
   final User friend;
-  ChatPage({@required this.owner, @required this.friend});
+  ChatPage({@required this.owner, @required this.friend, this.messages});
 
   @override
   Widget build(BuildContext context) {
-    ChatModel model = Provider.of(context);
-
+    List<Message> msgs =
+        (this.messages ?? Provider.of<ChatModel>(context).messages)
+            .where(
+              (m) =>
+                  (m.sender == friend.userId && m.receiver == owner.userId) ||
+                  (m.sender == owner.userId && m.receiver == friend.userId),
+            )
+            .toList();
+    print(msgs);
     return Scaffold(
       appBar: AppBar(
         title: Text("${friend.userName}"),
@@ -29,7 +37,7 @@ class ChatPage extends StatelessWidget {
             child: MessageList(
               leftUser: friend,
               rightUser: owner,
-              messages: model.messages,
+              messages: msgs,
             ),
           ),
           Padding(

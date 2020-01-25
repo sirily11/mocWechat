@@ -9,14 +9,18 @@ class MessageInput extends StatelessWidget {
       clipBehavior: Clip.antiAliasWithSaveLayer,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Row(
+        child: Column(
           children: <Widget>[
-            Expanded(
-              child: TextField(),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                )
+              ],
             ),
-            IconButton(
-              icon: Icon(Icons.send),
-            )
           ],
         ),
       ),

@@ -27,11 +27,11 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         darkTheme: ThemeData.dark().copyWith(
             highlightColor: Colors.teal, backgroundColor: Colors.teal),
-        themeMode: ThemeMode.dark,
+        themeMode: ThemeMode.system,
         title: 'Chat App',
         theme: ThemeData(
             primarySwatch: Colors.blue, highlightColor: Colors.yellow),
-        home: LoginPage(),
+        home: HomePage(),
       ),
     );
   }

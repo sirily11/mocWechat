@@ -47,11 +47,11 @@ class ChatroomListRow extends StatelessWidget {
           pushTo(
             context,
             mobileView: ChatPage(
-              friend: testFriend,
+              friend: chatroom,
               owner: testOwner,
             ),
             desktopView: ChatPage(
-              friend: testFriend,
+              friend: chatroom,
               owner: testOwner,
             ),
           );
