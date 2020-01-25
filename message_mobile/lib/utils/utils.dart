@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
+import 'package:message_mobile/pages/master-detail/master_detail_container.dart';
+import 'package:message_mobile/pages/master-detail/master_detail_route.dart';
 
 List<Map<String, dynamic>> getSchema(LoginPageSelection selection) {
   switch (selection) {
@@ -105,5 +108,25 @@ List<Map<String, dynamic>> getSchema(LoginPageSelection selection) {
           }
         }
       ];
+  }
+}
+
+void pushTo(BuildContext context,
+    {@required Widget mobileView, @required Widget desktopView}) {
+  while (Navigator.of(context).canPop()) {
+    Navigator.of(context).pop();
+  }
+  if (!isTablet(context)) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => mobileView,
+      ),
+    );
+  } else {
+    Navigator.of(context).push(
+      DetailRoute(
+        builder: (context) => desktopView,
+      ),
+    );
   }
 }

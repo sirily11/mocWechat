@@ -6,6 +6,7 @@ import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/chatpage.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_container.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_route.dart';
+import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 class ChatroomList extends StatelessWidget {
@@ -43,28 +44,17 @@ class ChatroomListRow extends StatelessWidget {
       ],
       child: ListTile(
         onTap: () {
-          while (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
-          if (!isTablet(context)) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ChatPage(
-                  friend: testFriend,
-                  owner: testOwner,
-                ),
-              ),
-            );
-          } else {
-            Navigator.of(context).push(
-              DetailRoute(
-                builder: (context) => ChatPage(
-                  friend: testFriend,
-                  owner: testOwner,
-                ),
-              ),
-            );
-          }
+          pushTo(
+            context,
+            mobileView: ChatPage(
+              friend: testFriend,
+              owner: testOwner,
+            ),
+            desktopView: ChatPage(
+              friend: testFriend,
+              owner: testOwner,
+            ),
+          );
         },
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).backgroundColor,

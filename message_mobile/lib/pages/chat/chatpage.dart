@@ -21,7 +21,7 @@ class ChatPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("${friend.userName}"),
-        leading: isTablet(context) ? null : BackButton(),
+        leading: BackButton(),
       ),
       body: Column(
         children: <Widget>[

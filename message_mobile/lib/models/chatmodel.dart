@@ -15,10 +15,7 @@ final User testFriend = User(
 
 class ChatModel with ChangeNotifier {
   List<User> chatrooms = [
-    User(
-      userName: "Test 1",
-      lastMessage: Message(messageBody: "Hello"),
-    ),
+    testFriend,
     User(
       userName: "Test 2",
       lastMessage: Message(messageBody: "Hello world"),
@@ -52,4 +49,17 @@ class ChatModel with ChangeNotifier {
       receiver: testOwner.userId,
     )
   ];
+
+  /// Search friend by their [userName]
+  /// This will return a list of friend
+  Future<List<User>> searchFriend({@required String userName}) async {
+    await Future.delayed(Duration(milliseconds: 300));
+    return [testFriend];
+  }
+
+  /// Get friends
+  Future<List<User>> getFriends() async {
+    await Future.delayed(Duration(milliseconds: 300));
+    return [testFriend];
+  }
 }

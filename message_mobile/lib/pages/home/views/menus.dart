@@ -22,20 +22,23 @@ class HomeMenus extends StatelessWidget {
       onTap: (index) {
         model.currentMenu = index;
       },
-      items:
-          [HomeMenu(index: 0, name: "Home"), HomeMenu(index: 1, name: "Friend")]
-              .map(
-                (s) => ListTile(
-                  title: Text(
-                    "${s.name}",
-                    style: Theme.of(context).primaryTextTheme.body1.apply(
-                        color: s.index == model.currentMenu
-                            ? highlightedColor
-                            : normalColor),
-                  ),
-                ),
-              )
-              .toList(),
+      items: [
+        HomeMenu(index: 0, name: "Home"),
+        HomeMenu(index: 1, name: "Friend"),
+        HomeMenu(index: 2, name: "Settings")
+      ]
+          .map(
+            (s) => ListTile(
+              title: Text(
+                "${s.name}",
+                style: Theme.of(context).primaryTextTheme.body1.apply(
+                    color: s.index == model.currentMenu
+                        ? highlightedColor
+                        : normalColor),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

@@ -1,5 +1,4 @@
 class User {
-  String id;
   DateTime dateOfBirth;
   List<User> friends;
   String password;
@@ -9,8 +8,7 @@ class User {
   Message lastMessage;
 
   User(
-      {this.id,
-      this.dateOfBirth,
+      {this.dateOfBirth,
       this.friends,
       this.password,
       this.sex,
@@ -19,7 +17,6 @@ class User {
       this.lastMessage});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-        id: json["_id"] == null ? null : json["_id"],
         dateOfBirth: json["dateOfBirth"] == null
             ? null
             : DateTime.parse(json["dateOfBirth"]),
@@ -34,7 +31,6 @@ class User {
       );
 
   Map<String, dynamic> toJson() => {
-        "_id": id == null ? null : id,
         "dateOfBirth":
             dateOfBirth == null ? null : dateOfBirth.toIso8601String(),
         "friends": friends == null
