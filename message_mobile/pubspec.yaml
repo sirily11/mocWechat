@@ -20,7 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   sembast: ^2.1.2+3
-  backdrop: ^0.2.8
+  backdrop_widget: ^0.3.0
   json_schema_form: ^0.8.0
   dio: ^3.0.8
   web_socket_channel: ^1.1.0

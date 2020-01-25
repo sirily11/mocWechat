@@ -1,4 +1,5 @@
-import 'package:backdrop/backdrop.dart';
+
+import 'package:backdrop_widget/backdrop.dart';
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/homePageModel.dart';
 import 'package:message_mobile/pages/friend/addFriendPage.dart';

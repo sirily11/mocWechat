@@ -29,13 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.4.0"
-  backdrop:
+  backdrop_widget:
     dependency: "direct main"
     description:
-      name: backdrop
+      name: backdrop_widget
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.8"
+    version: "0.3.0"
   barcode_scan:
     dependency: transitive
     description:

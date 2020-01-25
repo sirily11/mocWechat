@@ -1,5 +1,6 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:backdrop/backdrop.dart';
+import 'package:backdrop_widget/backdrop.dart';
+
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
 import 'package:provider/provider.dart';
