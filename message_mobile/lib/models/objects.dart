@@ -1,3 +1,7 @@
+import 'dart:io';
+
+enum MessageType { image, video, text, unknown }
+
 class User {
   DateTime dateOfBirth;
   List<User> friends;
@@ -50,6 +54,12 @@ class Message {
   String receiverName;
   String sender;
   DateTime time;
+  MessageType type = MessageType.text;
+
+  /// Only use this value for image, video
+  bool hasUploaded = true;
+  double uploadProgress = 0;
+  File uploadFile;
 
   Message({
     this.messageBody,
@@ -57,15 +67,22 @@ class Message {
     this.receiverName,
     this.sender,
     this.time,
+    this.type,
+    this.uploadFile,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) => Message(
+  factory Message.fromJson(Map<String, dynamic> json) {
+    MessageType _messageType = MessageType.values.firstWhere(
+        (e) => e.toString() == "MessageType.${json['messageType']}",
+        orElse: () => MessageType.text);
+    return Message(
         messageBody: json["messageBody"],
         receiver: json["receiver"],
         receiverName: json["receiverName"],
         sender: json["sender"],
         time: DateTime.parse(json["time"]),
-      );
+        type: _messageType);
+  }
 
   Map<String, dynamic> toJson() => {
         "messageBody": messageBody,
@@ -73,5 +90,6 @@ class Message {
         "receiverName": receiverName,
         "sender": sender,
         "time": time.toIso8601String(),
+        "messageType": type.toString()
       };
 }

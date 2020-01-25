@@ -25,7 +25,6 @@ class ChatPage extends StatelessWidget {
                   (m.sender == owner.userId && m.receiver == friend.userId),
             )
             .toList();
-    print(msgs);
     return Scaffold(
       appBar: AppBar(
         title: Text("${friend.userName}"),
@@ -42,7 +41,10 @@ class ChatPage extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.only(bottom: 20),
-            child: MessageInput(),
+            child: MessageInput(
+              owner: owner,
+              friend: friend,
+            ),
           )
         ],
       ),

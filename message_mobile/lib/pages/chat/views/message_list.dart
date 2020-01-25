@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/message_bubble.dart';
 
-class MessageList extends StatelessWidget {
+class MessageList extends StatefulWidget {
   /// List Of Messages
   final List<Message> messages;
 
@@ -17,13 +17,28 @@ class MessageList extends StatelessWidget {
       @required this.leftUser,
       @required this.rightUser});
 
+  @override
+  _MessageListState createState() => _MessageListState();
+}
+
+class _MessageListState extends State<MessageList> {
+  ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Future.delayed(Duration(milliseconds: 100), () {
+
+    // });
+  }
+
   Widget _buildLeft(Message message, BuildContext context) {
     return Row(
       children: <Widget>[
         CircleAvatar(
           backgroundColor: Theme.of(context).backgroundColor,
           child: Text(
-            leftUser.userName.substring(0, 1).toUpperCase(),
+            widget.leftUser.userName.substring(0, 1).toUpperCase(),
             style: Theme.of(context).primaryTextTheme.body1,
           ),
         ),
@@ -44,7 +59,7 @@ class MessageList extends StatelessWidget {
         CircleAvatar(
           backgroundColor: Theme.of(context).backgroundColor,
           child: Text(
-            leftUser.userName.substring(0, 1).toUpperCase(),
+            widget.leftUser.userName.substring(0, 1).toUpperCase(),
             style: Theme.of(context).primaryTextTheme.body1,
           ),
         ),
@@ -54,13 +69,19 @@ class MessageList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future.delayed(Duration(milliseconds: 20), () {
+      _controller.animateTo(_controller.position.maxScrollExtent,
+          duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
+    });
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: ListView.builder(
-        itemCount: messages.length,
+        controller: _controller,
+        itemCount: widget.messages.length,
         itemBuilder: (context, index) {
-          Message message = messages[index];
-          if (message.sender == leftUser.userId) {
+          Message message = widget.messages[index];
+          if (message.sender == widget.leftUser.userId) {
             return _buildLeft(message, context);
           }
           return _buildRight(message, context);
