@@ -25,7 +25,8 @@ class HomeMenus extends StatelessWidget {
       items: [
         HomeMenu(index: 0, name: "Home"),
         HomeMenu(index: 1, name: "Friend"),
-        HomeMenu(index: 2, name: "Settings")
+        HomeMenu(index: 2, name: "Feed"),
+        HomeMenu(index: 3, name: "Settings")
       ]
           .map(
             (s) => ListTile(

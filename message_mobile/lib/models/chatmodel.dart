@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
 
+final doc = r'[{"insert":"Zefyr"},{"insert":"\n","attributes":{"heading": 3}}]';
+
 final User testFriend = User(
     userName: "test friend",
     userId: "cdef",
@@ -20,6 +22,31 @@ final User testOwner = User(
 
 class ChatModel with ChangeNotifier {
   User currentUser = testOwner;
+  //TODO: Remove this field when finished implementing request
+  List<Feed> feeds = [
+    Feed(
+        id: "1",
+        content: doc,
+        publishDate: DateTime.now(),
+        likes: [],
+        user: testFriend,
+        images: [
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
+        ]),
+    Feed(
+        id: "2",
+        content: doc,
+        publishDate: DateTime.now(),
+        likes: [],
+        user: testFriend,
+        images: [
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
+        ])
+  ];
 
   List<User> chatrooms = [
     testFriend,
@@ -130,6 +157,32 @@ class ChatModel with ChangeNotifier {
     user.avatar = currentUser.avatar;
     user.friends = currentUser.friends;
     this.currentUser = user;
+    notifyListeners();
+  }
+
+  Future<List<Feed>> getFeeds() async {
+    await Future.delayed(Duration(milliseconds: 300));
+    //TODO: Add real requests
+    return feeds;
+  }
+
+  Future pressLike(String id) async {
+    final Feed feed = feeds.firstWhere((f) => f.id == id, orElse: () => null);
+    if (feed.likes.contains(currentUser.userId)) {
+      await pressUnLike(id);
+    } else {
+      await Future.delayed(
+        Duration(milliseconds: 300),
+      );
+      feed.likes.add(currentUser.userId);
+      notifyListeners();
+    }
+  }
+
+  Future pressUnLike(String id) async {
+    await Future.delayed(Duration(milliseconds: 300));
+    final Feed feed = feeds.firstWhere((f) => f.id == id, orElse: () => null);
+    feed.likes.remove(currentUser.userId);
     notifyListeners();
   }
 }

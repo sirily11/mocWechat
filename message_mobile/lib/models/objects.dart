@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+
 enum MessageType { image, video, text, unknown }
 
 class User {
@@ -46,7 +48,8 @@ class User {
         "sex": sex == null ? null : sex,
         "userID": userId == null ? null : userId,
         "userName": userName == null ? null : userName,
-        "avatar": avatar
+        "avatar": avatar,
+        "lastMessage": lastMessage
       };
 }
 
@@ -92,6 +95,42 @@ class Message {
         "receiverName": receiverName,
         "sender": sender,
         "time": time?.toIso8601String(),
-        "messageType": type.toString()
+        "messageType": type.toString(),
+      };
+}
+
+class Feed {
+  String content;
+  String id;
+  List<String> images;
+  List<String> likes;
+  DateTime publishDate;
+  User user;
+
+  Feed({
+    @required this.content,
+    @required this.id,
+    @required this.images,
+    @required this.likes,
+    @required this.publishDate,
+    @required this.user,
+  });
+
+  factory Feed.fromJson(Map<String, dynamic> json) => Feed(
+        content: json["content"],
+        id: json["id"],
+        images: List<String>.from(json["images"].map((x) => x)),
+        likes: List<String>.from(json["likes"].map((x) => x)),
+        publishDate: DateTime.parse(json["publish_date"]),
+        user: User.fromJson(json["user"]),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "content": content,
+        "id": id,
+        "images": List<dynamic>.from(images.map((x) => x)),
+        "likes": List<dynamic>.from(likes.map((x) => x)),
+        "publish_date": publishDate.toIso8601String(),
+        "user": user.toJson(),
       };
 }

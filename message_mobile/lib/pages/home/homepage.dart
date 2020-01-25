@@ -1,7 +1,7 @@
-
 import 'package:backdrop_widget/backdrop.dart';
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/homePageModel.dart';
+import 'package:message_mobile/pages/feed/feedPage.dart';
 import 'package:message_mobile/pages/friend/addFriendPage.dart';
 import 'package:message_mobile/pages/friend/friendPage.dart';
 import 'package:message_mobile/pages/friend/views/addFriendView.dart';
@@ -22,6 +22,8 @@ class HomePage extends StatelessWidget {
     } else if (model.currentMenu == 1) {
       return FriendPage();
     } else if (model.currentMenu == 2) {
+      return FeedPage();
+    } else if (model.currentMenu == 3) {
       return SettingsPage();
     }
   }

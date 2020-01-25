@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         title: 'Chat App',
         theme: ThemeData(
             primarySwatch: Colors.blue, highlightColor: Colors.yellow),
-        home: HomePage(),
+        home: LoginPage(),
       ),
     );
   }
