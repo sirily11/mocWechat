@@ -59,7 +59,7 @@ class _MessageListState extends State<MessageList> {
         CircleAvatar(
           backgroundColor: Theme.of(context).backgroundColor,
           child: Text(
-            widget.leftUser.userName.substring(0, 1).toUpperCase(),
+            widget.rightUser.userName.substring(0, 1).toUpperCase(),
             style: Theme.of(context).primaryTextTheme.body1,
           ),
         ),
@@ -69,7 +69,7 @@ class _MessageListState extends State<MessageList> {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(Duration(milliseconds: 20), () {
+    Future.delayed(Duration(milliseconds: 100), () {
       _controller.animateTo(_controller.position.maxScrollExtent,
           duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
     });

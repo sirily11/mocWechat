@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 double kTabletWidth = 768;
 double kMasterWidth = 300;
 
 bool isTablet(BuildContext context) {
-  return MediaQuery.of(context).size.width >= 768.0;
+  return MediaQuery.of(context).size.width >= 768.0 || Platform.isMacOS;
 }
 
 /// This widget will build widget accoding to the

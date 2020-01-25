@@ -60,24 +60,42 @@ class _MessageInputState extends State<MessageInput> {
                 IconButton(
                   onPressed: () async {
                     File imageFile = await ImagePicker.pickImage(
-                      source: ImageSource.gallery,
+                      source: ImageSource.camera,
                     );
-
-                    await model.sendMessage(
-                      Message(
-                        type: MessageType.image,
-                        time: DateTime.now(),
-                        sender: widget.owner.userId,
-                        receiver: widget.friend.userId,
-                        receiverName: widget.friend.userName,
-                        uploadFile: imageFile,
-                      ),
-                    );
+                    if (imageFile != null) {
+                      await model.sendMessage(
+                        Message(
+                          type: MessageType.image,
+                          time: DateTime.now(),
+                          sender: widget.owner.userId,
+                          receiver: widget.friend.userId,
+                          receiverName: widget.friend.userName,
+                          uploadFile: imageFile,
+                        ),
+                      );
+                    }
                   },
-                  icon: Icon(Icons.image),
+                  icon: Icon(Icons.camera_alt),
                 ),
                 IconButton(
-                  icon: Icon(Icons.video_library),
+                  onPressed: () async {
+                    File imageFile = await ImagePicker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (imageFile != null) {
+                      await model.sendMessage(
+                        Message(
+                          type: MessageType.image,
+                          time: DateTime.now(),
+                          sender: widget.owner.userId,
+                          receiver: widget.friend.userId,
+                          receiverName: widget.friend.userName,
+                          uploadFile: imageFile,
+                        ),
+                      );
+                    }
+                  },
+                  icon: Icon(Icons.photo_library),
                 )
               ],
             )

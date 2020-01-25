@@ -3,7 +3,9 @@ import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/message_input.dart';
 import 'package:message_mobile/pages/chat/views/message_list.dart';
+import 'package:message_mobile/pages/friend/freindDetailPage.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_container.dart';
+import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 class ChatPage extends StatelessWidget {
@@ -29,6 +31,24 @@ class ChatPage extends StatelessWidget {
       appBar: AppBar(
         title: Text("${friend.userName}"),
         leading: BackButton(),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () {
+              pushTo(
+                context,
+                mobileView: FriendDetailPage(
+                  self: owner,
+                  friend: friend,
+                ),
+                desktopView: FriendDetailPage(
+                  self: owner,
+                  friend: friend,
+                ),
+              );
+            },
+            icon: Icon(Icons.people),
+          )
+        ],
       ),
       body: Column(
         children: <Widget>[
