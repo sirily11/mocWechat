@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
 
-final User testOwner = User(
-  userName: "Owner",
-  userId: "abcd",
-  lastMessage: Message(messageBody: "Hello"),
-);
-
 final User testFriend = User(
   userName: "test friend",
   userId: "cdef",
   lastMessage: Message(messageBody: "Hello"),
+);
+
+final User testOwner = User(
+  userName: "Owner",
+  userId: "abcd",
+  lastMessage: Message(messageBody: "Hello"),
+  friends: [testFriend],
 );
 
 class ChatModel with ChangeNotifier {

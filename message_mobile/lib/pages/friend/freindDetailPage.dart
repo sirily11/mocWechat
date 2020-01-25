@@ -30,14 +30,24 @@ class FriendDetailPage extends StatelessWidget {
             ),
           ),
           Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                friend.userName,
-                style: Theme.of(context).primaryTextTheme.title,
-              ),
+            child: Text(
+              friend.userName,
+              style: Theme.of(context).primaryTextTheme.title,
             ),
-          )
+          ),
+          self.friends.contains(friend)
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    child: Text("Delete Friend"),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    child: Text("Add Friend"),
+                  ),
+                )
         ],
       ),
     );

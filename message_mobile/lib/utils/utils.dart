@@ -86,36 +86,34 @@ List<Map<String, dynamic>> getSchema(LoginPageSelection selection) {
     case LoginPageSelection.setting:
       return [
         {
-          "label": "ID",
-          "readonly": true,
-          "extra": {},
+          "label": "Websocket URL",
+          "readonly": false,
+          "extra": {"help": "Websocket Server URL starts with ws://"},
           "name": "id",
-          "widget": "number",
+          "widget": "text",
           "required": false,
           "translated": false,
           "validations": {}
         },
         {
-          "label": "Item Name",
+          "label": "HTTP Server URL",
           "readonly": false,
-          "extra": {"help": "Please Enter your item name", "default": ""},
-          "name": "name",
+          "extra": {"help": "HTTP Server URL Starts with http://"},
+          "name": "id",
           "widget": "text",
-          "required": true,
+          "required": false,
           "translated": false,
-          "validations": {
-            "length": {"maximum": 1024}
-          }
-        }
+          "validations": {}
+        },
       ];
   }
 }
 
 void pushTo(BuildContext context,
     {@required Widget mobileView, @required Widget desktopView}) {
-  while (Navigator.of(context).canPop()) {
-    Navigator.of(context).pop();
-  }
+  // while (Navigator.of(context).canPop()) {
+  //   Navigator.of(context).pop();
+  // }
   if (!isTablet(context)) {
     Navigator.of(context).push(
       MaterialPageRoute(

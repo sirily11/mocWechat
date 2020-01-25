@@ -6,6 +6,7 @@ import 'package:message_mobile/pages/friend/friendPage.dart';
 import 'package:message_mobile/pages/friend/views/addFriendView.dart';
 import 'package:message_mobile/pages/home/views/chatroomList.dart';
 import 'package:message_mobile/pages/home/views/menus.dart';
+import 'package:message_mobile/pages/login/loginpage.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_container.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_route.dart';
 import 'package:message_mobile/pages/settings/settingsPage.dart';
@@ -33,7 +34,14 @@ class HomePage extends StatelessWidget {
           child: BackdropScaffold(
             actions: <Widget>[
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (c) => LoginPage(),
+                    ),
+                  );
+                },
                 icon: Icon(Icons.exit_to_app),
               )
             ],
