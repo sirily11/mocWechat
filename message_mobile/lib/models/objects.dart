@@ -10,6 +10,7 @@ class User {
   String userId;
   String userName;
   Message lastMessage;
+  String avatar;
 
   User(
       {this.dateOfBirth,
@@ -18,21 +19,22 @@ class User {
       this.sex,
       this.userId,
       this.userName,
-      this.lastMessage});
+      this.lastMessage,
+      this.avatar});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-        dateOfBirth: json["dateOfBirth"] == null
-            ? null
-            : DateTime.parse(json["dateOfBirth"]),
-        friends: json["friends"] == null
-            ? null
-            : List<User>.from(json["friends"].map((x) => User.fromJson(x))),
-        password: json["password"] == null ? null : json["password"],
-        sex: json["sex"] == null ? null : json["sex"],
-        userId: json["userID"] == null ? null : json["userID"],
-        userName: json["userName"] == null ? null : json["userName"],
-        lastMessage: json['lastMessage'] == null ? null : json['lastMessage'],
-      );
+      dateOfBirth: json["dateOfBirth"] == null
+          ? null
+          : DateTime.parse(json["dateOfBirth"]),
+      friends: json["friends"] == null
+          ? null
+          : List<User>.from(json["friends"].map((x) => User.fromJson(x))),
+      password: json["password"] == null ? null : json["password"],
+      sex: json["sex"] == null ? null : json["sex"],
+      userId: json["userID"] == null ? null : json["userID"],
+      userName: json["userName"] == null ? null : json["userName"],
+      lastMessage: json['lastMessage'] == null ? null : json['lastMessage'],
+      avatar: json['avatar']);
 
   Map<String, dynamic> toJson() => {
         "dateOfBirth":
@@ -44,7 +46,7 @@ class User {
         "sex": sex == null ? null : sex,
         "userID": userId == null ? null : userId,
         "userName": userName == null ? null : userName,
-        "lastMessage": lastMessage?.toJson()
+        "avatar": avatar
       };
 }
 
@@ -89,7 +91,7 @@ class Message {
         "receiver": receiver,
         "receiverName": receiverName,
         "sender": sender,
-        "time": time.toIso8601String(),
+        "time": time?.toIso8601String(),
         "messageType": type.toString()
       };
 }

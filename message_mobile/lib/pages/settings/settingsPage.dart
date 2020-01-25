@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:json_schema_form/JSONSchemaForm.dart';
 import 'package:message_mobile/models/chatmodel.dart';
+import 'package:message_mobile/models/signInPageModel.dart';
+import 'package:message_mobile/utils/utils.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    ChatModel model = Provider.of(context);
     return Container(
       child: Column(
         children: <Widget>[
@@ -16,28 +21,28 @@ class SettingsPage extends StatelessWidget {
           ),
           ListTile(
             onTap: () {
+              TextEditingController controller =
+                  TextEditingController(text: model.currentUser.userName);
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text("Change User Name"),
-                  content: TextField(
-                    decoration: InputDecoration(labelText: "User Name"),
-                  ),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text("Ok"),
-                    ),
-                    FlatButton(
-                      child: Text("Cancel"),
-                      onPressed: () {
+                  title: Text("Change User Info"),
+                  content: Container(
+                    height: 400,
+                    width: 300,
+                    child: JSONSchemaForm(
+                      schema: getSchema(LoginPageSelection.signUp),
+                      values: model.currentUser.toJson(),
+                      onSubmit: (v) async {
+                        await model.updateUser(v);
                         Navigator.pop(context);
                       },
-                    )
-                  ],
+                    ),
+                  ),
                 ),
               );
             },
-            title: Text(testOwner.userName),
+            title: Text(model.currentUser.userName),
             trailing: Icon(Icons.edit),
           ),
           SwitchListTile(

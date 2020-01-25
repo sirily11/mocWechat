@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/chatpage.dart';
+import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_container.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_route.dart';
 import 'package:message_mobile/utils/utils.dart';
@@ -33,6 +34,7 @@ class ChatroomListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ChatModel model = Provider.of(context);
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
@@ -48,18 +50,16 @@ class ChatroomListRow extends StatelessWidget {
             context,
             mobileView: ChatPage(
               friend: chatroom,
-              owner: testOwner,
+              owner: model.currentUser,
             ),
             desktopView: ChatPage(
               friend: chatroom,
-              owner: testOwner,
+              owner: model.currentUser,
             ),
           );
         },
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).backgroundColor,
-          child: Text(chatroom.userName.substring(0, 1),
-              style: Theme.of(context).primaryTextTheme.body2),
+        leading: AvatarView(
+          user: chatroom,
         ),
         title: Text(
           chatroom.userName,

@@ -2,19 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
 
 final User testFriend = User(
-  userName: "test friend",
-  userId: "cdef",
-  lastMessage: Message(messageBody: "Hello"),
-);
+    userName: "test friend",
+    userId: "cdef",
+    lastMessage: Message(messageBody: "Hello"),
+    avatar:
+        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg");
 
 final User testOwner = User(
-  userName: "Owner",
-  userId: "abcd",
-  lastMessage: Message(messageBody: "Hello"),
-  friends: [testFriend],
-);
+    dateOfBirth: DateTime.now(),
+    userName: "Owner",
+    userId: "abcd",
+    sex: "male",
+    lastMessage: Message(messageBody: "Hello"),
+    friends: [testFriend],
+    avatar:
+        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg");
 
 class ChatModel with ChangeNotifier {
+  User currentUser = testOwner;
+
   List<User> chatrooms = [
     testFriend,
     User(
@@ -114,6 +120,16 @@ class ChatModel with ChangeNotifier {
         notifyListeners();
       }
     }
+    notifyListeners();
+  }
+
+  Future updateUser(Map<String, dynamic> data) async {
+    await Future.delayed(Duration(milliseconds: 300));
+    var user = User.fromJson(data);
+    user.userId = currentUser.userId;
+    user.avatar = currentUser.avatar;
+    user.friends = currentUser.friends;
+    this.currentUser = user;
     notifyListeners();
   }
 }

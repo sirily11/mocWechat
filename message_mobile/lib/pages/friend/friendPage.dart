@@ -21,7 +21,7 @@ class FriendPage extends StatelessWidget {
           child: snapshot.hasData
               ? FriendList(
                   friends: snapshot.data,
-                  self: testOwner,
+                  self: chatModel.currentUser,
                 )
               : Center(
                   child: JumpingDotsProgressIndicator(

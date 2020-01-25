@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
+import 'package:message_mobile/pages/friend/views/avatarView.dart';
 
 class FriendDetailPage extends StatelessWidget {
   /// Friend
@@ -21,18 +22,17 @@ class FriendDetailPage extends StatelessWidget {
       body: ListView(
         children: <Widget>[
           Center(
-            child: CircleAvatar(
-              radius: 50,
-              child: Text(
-                friend.userName.substring(0, 1).toUpperCase(),
-                style: Theme.of(context).primaryTextTheme.display3,
-              ),
-            ),
-          ),
+              child: AvatarView(
+            size: 50,
+            user: friend,
+          )),
           Center(
             child: Text(
               friend.userName,
-              style: Theme.of(context).primaryTextTheme.title,
+              style: Theme.of(context)
+                  .primaryTextTheme
+                  .bodyText1
+                  .copyWith(fontSize: 30),
             ),
           ),
           self.friends.contains(friend)

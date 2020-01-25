@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/message_bubble.dart';
+import 'package:message_mobile/pages/friend/views/avatarView.dart';
 
 class MessageList extends StatefulWidget {
   /// List Of Messages
@@ -35,12 +36,8 @@ class _MessageListState extends State<MessageList> {
   Widget _buildLeft(Message message, BuildContext context) {
     return Row(
       children: <Widget>[
-        CircleAvatar(
-          backgroundColor: Theme.of(context).backgroundColor,
-          child: Text(
-            widget.leftUser.userName.substring(0, 1).toUpperCase(),
-            style: Theme.of(context).primaryTextTheme.body1,
-          ),
+        AvatarView(
+          user: widget.leftUser,
         ),
         MessageBubble(
           message: message,
@@ -56,13 +53,9 @@ class _MessageListState extends State<MessageList> {
         MessageBubble(
           message: message,
         ),
-        CircleAvatar(
-          backgroundColor: Theme.of(context).backgroundColor,
-          child: Text(
-            widget.rightUser.userName.substring(0, 1).toUpperCase(),
-            style: Theme.of(context).primaryTextTheme.body1,
-          ),
-        ),
+        AvatarView(
+          user: widget.rightUser,
+        )
       ],
     );
   }
@@ -71,21 +64,23 @@ class _MessageListState extends State<MessageList> {
   Widget build(BuildContext context) {
     Future.delayed(Duration(milliseconds: 100), () {
       _controller.animateTo(_controller.position.maxScrollExtent,
-          duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
+          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
     });
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      child: ListView.builder(
-        controller: _controller,
-        itemCount: widget.messages.length,
-        itemBuilder: (context, index) {
-          Message message = widget.messages[index];
-          if (message.sender == widget.leftUser.userId) {
-            return _buildLeft(message, context);
-          }
-          return _buildRight(message, context);
-        },
+    return Scrollbar(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: ListView.builder(
+          controller: _controller,
+          itemCount: widget.messages.length,
+          itemBuilder: (context, index) {
+            Message message = widget.messages[index];
+            if (message.sender == widget.leftUser.userId) {
+              return _buildLeft(message, context);
+            }
+            return _buildRight(message, context);
+          },
+        ),
       ),
     );
   }
