@@ -39,7 +39,7 @@ class FriendDetailPage extends StatelessWidget {
                   .copyWith(fontSize: 30),
             ),
           ),
-          self.friends.contains(friend)
+          self.friends.contains(friend) 
               ? Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RaisedButton(

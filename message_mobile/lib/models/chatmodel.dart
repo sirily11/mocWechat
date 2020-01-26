@@ -1,11 +1,17 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final doc = r'[{"insert":"Zefyr"},{"insert":"\n","attributes":{"heading": 3}}]';
 
 class ChatModel with ChangeNotifier {
+  Dio networkProvider;
+
+  String websocketURL;
+  String httpURL;
   static User testFriend = User(
     userName: "test friend",
     sex: "male",
@@ -85,8 +91,10 @@ class ChatModel with ChangeNotifier {
         ])
   ];
 
-  ChatModel() {
-    this.currentUser = testOwner;
+  ChatModel({Dio dio}) {
+    // this.currentUser = testOwner;
+    this.networkProvider = dio ?? Dio();
+    this.init();
   }
 
   List<User> chatrooms = [testFriend, testFriend2];
@@ -161,8 +169,12 @@ class ChatModel with ChangeNotifier {
   /// Search friend by their [userName]
   /// This will return a list of friend
   Future<List<User>> searchFriend({@required String userName}) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    return [testFriend];
+    Response<List> response = await this.networkProvider.get<List>(
+        "$httpURL/search/user",
+        queryParameters: {"userName": userName});
+    List<User> users = response.data.map((d) => User.fromJson(d)).toList();
+
+    return users;
   }
 
   /// Get friends
@@ -261,5 +273,64 @@ class ChatModel with ChangeNotifier {
     final Feed feed = feeds.firstWhere((f) => f.id == id, orElse: () => null);
     feed.likes.remove(currentUser.userId);
     notifyListeners();
+  }
+
+  /// Login
+  Future<void> login({@required Map<String, dynamic> info}) async {
+    await Future.delayed(Duration(milliseconds: 300));
+    try {
+      Response response =
+          await this.networkProvider.post("$httpURL/login", data: info);
+      this.currentUser = User.fromJson(response.data);
+    } on DioError catch (err) {
+      throw (err.response);
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  /// Sign Up
+  Future<void> signUp({@required Map<String, dynamic> info}) async {
+    await Future.delayed(Duration(milliseconds: 300));
+    try {
+      Response response =
+          await this.networkProvider.post("$httpURL/add/user", data: info);
+      this.currentUser = User.fromJson(response.data);
+    } on DioError catch (err) {
+      throw (err.response);
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future setURL({@required Map<String, dynamic> info}) async {
+    await Future.delayed(Duration(milliseconds: 300));
+    if ((info['http'] as String).endsWith("/") ||
+        (info['websocket'] as String).endsWith("/")) {
+      throw Exception("url should not end with /");
+    }
+    if (!(info['http'] as String).startsWith("http://") &&
+        !(info['http'] as String).startsWith("https://")) {
+      throw Exception("HTTP Server URL should start with http or https");
+    }
+    if (!(info['websocket'] as String).startsWith("ws")) {
+      throw Exception("Websocket URL should start with ws");
+    }
+
+    this.httpURL = info['http'];
+    this.websocketURL = info['websocket'];
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString("websocket", websocketURL);
+    await prefs.setString("http", httpURL);
+
+    await this.networkProvider.get("$httpURL/");
+    return;
+  }
+
+  Future<void> init() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    this.websocketURL = prefs.get("websocket");
+    this.httpURL = prefs.get("http");
   }
 }

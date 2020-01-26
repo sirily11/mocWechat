@@ -133,7 +133,7 @@ export async function deleteUser(userID: string, debug = false) {
  * @param password password
  * @returns user id if login success
  */
-export async function login(userName: string, password: string, debug = false): Promise<string> {
+export async function login(userName: string, password: string, debug = false): Promise<User> {
     return new Promise(async (resolve, reject) => {
         let databaseName = settings.databaseName
         let userCollectionName = settings.userCollectionName
@@ -150,9 +150,9 @@ export async function login(userName: string, password: string, debug = false): 
                 reject("No such user")
             } else {
                 if (res.password) {
-                    let match = await bcrypt.compare(password, res.password)
+                    let match = await bcrypt.compare(password, res.password);
                     if (match) {
-                        resolve(res._id)
+                        resolve(res)
                     } else {
                         reject("Wrong password")
                     }

@@ -5,5 +5,5 @@ export interface User {
     password?: string
     dateOfBirth?: string
     sex?: string
-    friends?: [User]
+    friends: [User]
 }

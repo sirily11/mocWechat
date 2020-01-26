@@ -60,7 +60,12 @@ class _AddFriendViewState extends State<AddFriendView> {
                       duration: Duration(milliseconds: 200),
                       child: snapshot.hasData
                           ? FriendList(
-                              friends: snapshot.data,
+                              friends: snapshot.data
+                                  .where(
+                                    (u) => u.userId != model.currentUser.userId,
+                                  )
+                                  .toList(),
+                              self: model.currentUser,
                             )
                           : Center(
                               child: JumpingDotsProgressIndicator(
