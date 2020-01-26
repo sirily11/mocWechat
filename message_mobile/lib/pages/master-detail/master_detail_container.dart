@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 double kTabletWidth = 768;
-double kMasterWidth = 300;
+double kMasterWidth = 400;
 
 bool isTablet(BuildContext context) {
   return MediaQuery.of(context).size.width >= 768.0 || Platform.isMacOS;

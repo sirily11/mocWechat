@@ -13,7 +13,16 @@ class CommentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ChatModel model = Provider.of(context);
-    return GestureDetector(
+    return InkWell(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (_) => CommentDialog(
+            comment: comment,
+            feed: feed,
+          ),
+        );
+      },
       onLongPress: () {
         showBottomSheet(
           context: context,
@@ -34,15 +43,6 @@ class CommentRow extends StatelessWidget {
                 title: Text("Cancel"),
               )
             ],
-          ),
-        );
-      },
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (_) => CommentDialog(
-            comment: comment,
-            feed: feed,
           ),
         );
       },
