@@ -13,6 +13,7 @@ class FeedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      reverse: true,
       itemCount: feeds.length,
       separatorBuilder: (c, i) => Divider(),
       itemBuilder: (context, index) {

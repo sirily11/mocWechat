@@ -8,6 +8,7 @@ import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/imageView.dart';
 import 'package:message_mobile/pages/feed/views/image.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:provider/provider.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:zefyr/zefyr.dart';
@@ -73,7 +74,25 @@ class FeedRow extends StatelessWidget {
               },
               icon: Icon(CommunityMaterialIcons.thumb_up),
             ),
-            Text("${feed.likes.length}")
+            Text("${feed.likes.length}"),
+            feed.user.userId == user.userId
+                ? IconButton(
+                    onPressed: () async {
+                      model.deleteFeed(feed);
+                    },
+                    icon: Icon(Icons.delete),
+                  )
+                : Container(),
+            Spacer(),
+            feed.isLoading
+                ? JumpingDotsProgressIndicator(
+                    color: Theme.of(context).primaryTextTheme.bodyText2.color,
+                    fontSize: 27,
+                  )
+                : Container(),
+            SizedBox(
+              width: 10,
+            )
           ],
         )
       ],

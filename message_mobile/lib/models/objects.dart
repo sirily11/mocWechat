@@ -106,6 +106,7 @@ class Feed {
   List<String> likes;
   DateTime publishDate;
   User user;
+  bool isLoading = false;
 
   Feed({
     @required this.content,

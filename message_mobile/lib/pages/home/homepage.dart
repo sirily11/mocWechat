@@ -1,6 +1,8 @@
 import 'package:backdrop_widget/backdrop.dart';
+import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/homePageModel.dart';
+import 'package:message_mobile/pages/feed/editPage.dart';
 import 'package:message_mobile/pages/feed/feedPage.dart';
 import 'package:message_mobile/pages/friend/addFriendPage.dart';
 import 'package:message_mobile/pages/friend/friendPage.dart';
@@ -36,6 +38,18 @@ class HomePage extends StatelessWidget {
         MasterDetailContainer(
           child: BackdropScaffold(
             actions: <Widget>[
+              model.currentMenu == 2
+                  ? IconButton(
+                      onPressed: () {
+                        pushTo(
+                          context,
+                          mobileView: FullPageEditorScreen(),
+                          desktopView: FullPageEditorScreen(),
+                        );
+                      },
+                      icon: Icon(CommunityMaterialIcons.file_document_edit),
+                    )
+                  : Container(),
               IconButton(
                 onPressed: () {
                   Navigator.pushReplacement(
@@ -46,7 +60,7 @@ class HomePage extends StatelessWidget {
                   );
                 },
                 icon: Icon(Icons.exit_to_app),
-              )
+              ),
             ],
             stickyFrontLayer: true,
             frontLayer: _getPage(context),

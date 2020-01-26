@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
 
@@ -164,6 +166,30 @@ class ChatModel with ChangeNotifier {
     await Future.delayed(Duration(milliseconds: 300));
     //TODO: Add real requests
     return feeds;
+  }
+
+  Future writeFeed(String content, List<File> images) async {
+    Feed feed = Feed(
+      content: content,
+      id: DateTime.now().toString(),
+      user: currentUser,
+      publishDate: DateTime.now(),
+      likes: [],
+      images: images
+          .map((i) =>
+              "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg")
+          .toList(),
+    );
+    feeds.add(feed);
+    notifyListeners();
+  }
+
+  Future deleteFeed(Feed feed) async {
+    feed.isLoading = true;
+    notifyListeners();
+    await Future.delayed(Duration(milliseconds: 2300));
+    this.feeds.remove(feed);
+    notifyListeners();
   }
 
   Future pressLike(String id) async {
