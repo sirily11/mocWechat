@@ -5,6 +5,8 @@ import 'package:message_mobile/pages/feed/views/commentDialog.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:provider/provider.dart';
 
+/// Show comment. If comment is reply, then show comment to user
+/// as @to. And then show comment
 class CommentRow extends StatelessWidget {
   final Comment comment;
   final Feed feed;

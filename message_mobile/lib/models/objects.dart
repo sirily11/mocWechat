@@ -14,15 +14,16 @@ class User {
   Message lastMessage;
   String avatar;
 
-  User(
-      {this.dateOfBirth,
-      this.friends,
-      this.password,
-      this.sex,
-      this.userId,
-      this.userName,
-      this.lastMessage,
-      this.avatar});
+  User({
+    @required this.dateOfBirth,
+    @required this.friends,
+    @required this.password,
+    @required this.sex,
+    @required this.userId,
+    @required this.userName,
+    this.lastMessage,
+    this.avatar,
+  });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
       dateOfBirth: json["dateOfBirth"] == null

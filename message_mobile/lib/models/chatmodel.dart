@@ -5,34 +5,43 @@ import 'package:message_mobile/models/objects.dart';
 
 final doc = r'[{"insert":"Zefyr"},{"insert":"\n","attributes":{"heading": 3}}]';
 
-final User testFriend = User(
-  userName: "test friend",
-  userId: "cdef",
-  lastMessage: Message(messageBody: "Hello"),
-  avatar:
-      "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-);
-
-final User testFriend2 = User(
-  userName: "test friend 2",
-  userId: "cdef",
-  lastMessage: Message(messageBody: "Hello"),
-  avatar:
-      "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-);
-
-final User testOwner = User(
-    dateOfBirth: DateTime.now(),
-    userName: "Owner",
-    userId: "abcd",
-    sex: "male",
-    lastMessage: Message(messageBody: "Hello"),
-    friends: [testFriend],
-    avatar:
-        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg");
-
 class ChatModel with ChangeNotifier {
-  User currentUser = testOwner;
+  static User testFriend = User(
+    userName: "test friend",
+    sex: "male",
+    friends: [],
+    userId: "cdef",
+    password: "a",
+    dateOfBirth: DateTime.now(),
+    lastMessage: Message(messageBody: "Hello"),
+    avatar:
+        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
+  );
+
+  static User testFriend2 = User(
+    userName: "test friend 2",
+    sex: "male",
+    userId: "cdef",
+    password: "a",
+    friends: [],
+    dateOfBirth: DateTime.now(),
+    lastMessage: Message(messageBody: "Hello"),
+    avatar:
+        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
+  );
+
+  static User testOwner = User(
+      dateOfBirth: DateTime.now(),
+      userName: "Owner",
+      userId: "abcd",
+      sex: "male",
+      password: "a",
+      lastMessage: Message(messageBody: "Hello"),
+      friends: [testFriend],
+      avatar:
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg");
+
+  User currentUser;
   //TODO: Remove this field when finished implementing request
   List<Feed> feeds = [
     Feed(
@@ -75,6 +84,10 @@ class ChatModel with ChangeNotifier {
           "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
         ])
   ];
+
+  ChatModel() {
+    this.currentUser = testOwner;
+  }
 
   List<User> chatrooms = [testFriend, testFriend2];
 

@@ -50,23 +50,27 @@ class ChatPage extends StatelessWidget {
           )
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: MessageList(
-              leftUser: friend,
-              rightUser: owner,
-              messages: msgs,
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: MessageList(
+                leftUser: friend,
+                rightUser: owner,
+                messages: msgs,
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: 20),
-            child: MessageInput(
-              owner: owner,
-              friend: friend,
-            ),
-          )
-        ],
+            Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: MessageInput(
+                owner: owner,
+                friend: friend,
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
