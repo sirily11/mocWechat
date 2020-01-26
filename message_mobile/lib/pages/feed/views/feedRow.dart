@@ -6,6 +6,8 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/imageView.dart';
+import 'package:message_mobile/pages/feed/views/commentDialog.dart';
+import 'package:message_mobile/pages/feed/views/commentList.dart';
 import 'package:message_mobile/pages/feed/views/image.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -75,6 +77,17 @@ class FeedRow extends StatelessWidget {
               icon: Icon(CommunityMaterialIcons.thumb_up),
             ),
             Text("${feed.likes.length}"),
+            IconButton(
+              icon: Icon(Icons.comment),
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (_) => CommentDialog(
+                    feed: feed,
+                  ),
+                );
+              },
+            ),
             feed.user.userId == user.userId
                 ? IconButton(
                     onPressed: () async {
@@ -94,6 +107,11 @@ class FeedRow extends StatelessWidget {
               width: 10,
             )
           ],
+        ),
+        feed.comments.length > 0 ? Divider() : Container(),
+        CommentList(
+          feed: feed,
+          comments: feed.comments,
         )
       ],
     );

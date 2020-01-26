@@ -100,6 +100,7 @@ class Message {
 }
 
 class Feed {
+  List<Comment> comments;
   String content;
   String id;
   List<String> images;
@@ -109,6 +110,7 @@ class Feed {
   bool isLoading = false;
 
   Feed({
+    @required this.comments,
     @required this.content,
     @required this.id,
     @required this.images,
@@ -118,6 +120,8 @@ class Feed {
   });
 
   factory Feed.fromJson(Map<String, dynamic> json) => Feed(
+        comments: List<Comment>.from(
+            json["comments"].map((x) => Comment.fromJson(x))),
         content: json["content"],
         id: json["id"],
         images: List<String>.from(json["images"].map((x) => x)),
@@ -127,11 +131,45 @@ class Feed {
       );
 
   Map<String, dynamic> toJson() => {
+        "comments": List<dynamic>.from(comments.map((x) => x.toJson())),
         "content": content,
         "id": id,
         "images": List<dynamic>.from(images.map((x) => x)),
         "likes": List<dynamic>.from(likes.map((x) => x)),
         "publish_date": publishDate.toIso8601String(),
+        "user": user.toJson(),
+      };
+}
+
+class Comment {
+  String content;
+  bool isReply;
+  DateTime postedTime;
+  User replayTo;
+  User user;
+
+  Comment({
+    @required this.content,
+    @required this.isReply,
+    @required this.postedTime,
+    @required this.replayTo,
+    @required this.user,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) => Comment(
+        content: json["content"],
+        isReply: json["is_reply"],
+        postedTime: DateTime.parse(json["posted_time"]),
+        replayTo:
+            json["replay_to"] == null ? null : User.fromJson(json["replay_to"]),
+        user: User.fromJson(json["user"]),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "content": content,
+        "is_reply": isReply,
+        "posted_time": postedTime.toIso8601String(),
+        "replay_to": replayTo == null ? null : replayTo.toJson(),
         "user": user.toJson(),
       };
 }
