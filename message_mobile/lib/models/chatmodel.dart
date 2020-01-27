@@ -96,75 +96,76 @@ class ChatModel with ChangeNotifier {
     this.networkProvider = dio ?? Dio();
     this.init();
   }
+  List<User> chatrooms = [];
+  // List<User> chatrooms = [testFriend, testFriend2];
 
-  List<User> chatrooms = [testFriend, testFriend2];
-
-  List<Message> messages = [
-    Message(
-      messageBody: "abcde",
-      sender: testFriend.userId,
-      receiver: testOwner.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testOwner.userId,
-      receiver: testFriend.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testFriend.userId,
-      receiver: testOwner.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testOwner.userId,
-      receiver: testFriend.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testFriend.userId,
-      receiver: testOwner.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testOwner.userId,
-      receiver: testFriend.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testFriend.userId,
-      receiver: testOwner.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testOwner.userId,
-      receiver: testFriend.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testFriend.userId,
-      receiver: testOwner.userId,
-    ),
-    Message(
-      messageBody: "abcde",
-      sender: testOwner.userId,
-      receiver: testFriend.userId,
-    ),
-    Message(
-      messageBody:
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-      sender: testFriend.userId,
-      receiver: testOwner.userId,
-      type: MessageType.image,
-    ),
-    Message(
-      messageBody:
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-      sender: testOwner.userId,
-      receiver: testFriend.userId,
-      type: MessageType.image,
-    )
-  ];
+  List<Message> messages = [];
+  // List<Message> messages = [
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testFriend.userId,
+  //     receiver: testOwner.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testOwner.userId,
+  //     receiver: testFriend.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testFriend.userId,
+  //     receiver: testOwner.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testOwner.userId,
+  //     receiver: testFriend.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testFriend.userId,
+  //     receiver: testOwner.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testOwner.userId,
+  //     receiver: testFriend.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testFriend.userId,
+  //     receiver: testOwner.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testOwner.userId,
+  //     receiver: testFriend.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testFriend.userId,
+  //     receiver: testOwner.userId,
+  //   ),
+  //   Message(
+  //     messageBody: "abcde",
+  //     sender: testOwner.userId,
+  //     receiver: testFriend.userId,
+  //   ),
+  //   Message(
+  //     messageBody:
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
+  //     sender: testFriend.userId,
+  //     receiver: testOwner.userId,
+  //     type: MessageType.image,
+  //   ),
+  //   Message(
+  //     messageBody:
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+  //     sender: testOwner.userId,
+  //     receiver: testFriend.userId,
+  //     type: MessageType.image,
+  //   )
+  // ];
 
   /// Search friend by their [userName]
   /// This will return a list of friend
@@ -180,7 +181,17 @@ class ChatModel with ChangeNotifier {
   /// Get friends
   Future<List<User>> getFriends() async {
     await Future.delayed(Duration(milliseconds: 300));
-    return [testFriend];
+    return currentUser.friends;
+  }
+
+  Future<void> addFriend(User friend) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
+    Response response = await this.networkProvider.post("$httpURL/add/friend",
+        data: {"friend": friend.toJson()},
+        options: Options(headers: {"Authorization": "Bearer $token"}));
+    this.currentUser.friends.add(friend);
+    notifyListeners();
   }
 
   Future sendMessage(Message message) async {
@@ -282,6 +293,8 @@ class ChatModel with ChangeNotifier {
       Response response =
           await this.networkProvider.post("$httpURL/login", data: info);
       this.currentUser = User.fromJson(response.data);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString("token", response.data['token']);
     } on DioError catch (err) {
       throw (err.response);
     } finally {
@@ -296,6 +309,8 @@ class ChatModel with ChangeNotifier {
       Response response =
           await this.networkProvider.post("$httpURL/add/user", data: info);
       this.currentUser = User.fromJson(response.data);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString("token", response.data['token']);
     } on DioError catch (err) {
       throw (err.response);
     } finally {

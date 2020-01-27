@@ -1,7 +1,9 @@
 import * as MongoClient from "mongodb"
 import * as bcrypt from "bcrypt"
-import { User } from './userObj';
-import { settings } from "./settings/settings";
+import {User} from './userObj';
+import {settings} from "./settings/settings";
+import {ObjectId} from "mongodb";
+import {Feed} from "./feed/feedObj";
 
 /**
  * Get mongodb client
@@ -11,9 +13,9 @@ export function getClient(): Promise<MongoClient.MongoClient> {
     return new Promise((resolve, rejects) => {
         MongoClient.connect(settings.url, {
             useNewUrlParser: true,
-            auth: { user: settings.userName, password: settings.password }
+            auth: {user: settings.userName, password: settings.password}
         }, (err, db) => {
-            if (err) rejects(err)
+            if (err) rejects(err);
             else {
                 resolve(db)
             }
@@ -26,24 +28,32 @@ export function getClient(): Promise<MongoClient.MongoClient> {
  */
 export async function init(debug = false) {
     return new Promise(async (resolve, reject) => {
-        let databaseName = settings.databaseName
-        let userCollectionName = settings.userCollectionName
+        let databaseName = settings.databaseName;
+        let userCollectionName = settings.userCollectionName;
         if (debug) {
-            databaseName = settings.databaseName + "-debug"
-            userCollectionName = settings.userCollectionName + "-debug"
+            databaseName = settings.databaseName + "-debug";
+            userCollectionName = settings.userCollectionName + "-debug";
         }
 
-        let db = await getClient()
-        let dbo = db.db(databaseName)
+        let db = await getClient();
+        let dbo = db.db(databaseName);
         dbo.createCollection(userCollectionName, (err, res) => {
-            if (err) console.log(err)
+            if (err) console.log(err);
             else {
-                res.createIndex({ userName: "text" }, { unique: true }, (err, result) => {
-                    if (err) reject(err)
+                res.createIndex({userName: "text"}, {unique: true}, (err, result) => {
+                    if (err) reject(err);
                     else {
                         resolve()
                     }
                 })
+            }
+            db.close()
+        });
+
+        dbo.createCollection(settings.feedCollectionName, (err, res) => {
+            if (err) console.log(err);
+            else {
+                resolve();
             }
             db.close()
         })
@@ -52,13 +62,13 @@ export async function init(debug = false) {
 
 
 export async function destroy(debug = false) {
-    let databaseName = settings.databaseName
+    let databaseName = settings.databaseName;
     if (debug) {
         databaseName = settings.databaseName + "-debug"
     }
-    let db = await getClient()
-    let dbo = db.db(databaseName)
-    await dbo.dropDatabase()
+    let db = await getClient();
+    let dbo = db.db(databaseName);
+    await dbo.dropDatabase();
     db.close()
 }
 
@@ -69,17 +79,17 @@ export async function destroy(debug = false) {
  */
 export async function addUser(user: User, debug = false): Promise<string> {
     return new Promise(async (resolve, rejects) => {
-        let databaseName = settings.databaseName
-        let userCollectionName = settings.userCollectionName
+        let databaseName = settings.databaseName;
+        let userCollectionName = settings.userCollectionName;
         if (debug) {
-            databaseName = settings.databaseName + "-debug"
+            databaseName = settings.databaseName + "-debug";
             userCollectionName = settings.userCollectionName + "-debug"
         }
 
-        let db = await getClient()
-        let dbo = db.db(databaseName)
+        let db = await getClient();
+        let dbo = db.db(databaseName);
         try {
-            let hashPassword = await bcrypt.hash(user.password, 10)
+            let hashPassword = await bcrypt.hash(user.password, 10);
             user.password = hashPassword
         } catch (err) {
             console.log(err)
@@ -92,9 +102,8 @@ export async function addUser(user: User, debug = false): Promise<string> {
                 } else {
                     rejects(err)
                 }
-            }
-            else {
-                console.log("document inserted")
+            } else {
+                console.log("document inserted");
                 resolve(res.insertedId.toHexString())
             }
             db.close()
@@ -108,18 +117,18 @@ export async function addUser(user: User, debug = false): Promise<string> {
  * @param user User Object
  */
 export async function deleteUser(userID: string, debug = false) {
-    let databaseName = settings.databaseName
-    let userCollectionName = settings.userCollectionName
+    let databaseName = settings.databaseName;
+    let userCollectionName = settings.userCollectionName;
     if (debug) {
-        databaseName = settings.databaseName + "-debug"
-        userCollectionName = settings.userCollectionName + "-debug"
+        databaseName = settings.databaseName + "-debug";
+        userCollectionName = settings.userCollectionName + "-debug";
     }
 
-    let db = await getClient()
-    let dbo = db.db(databaseName)
+    let db = await getClient();
+    let dbo = db.db(databaseName);
 
-    dbo.collection(userCollectionName).deleteOne({ _id: new MongoClient.ObjectID(userID) }, (err, res) => {
-        if (err) console.log(err)
+    dbo.collection(userCollectionName).deleteOne({_id: new MongoClient.ObjectID(userID)}, (err, res) => {
+        if (err) console.log(err);
         else {
             console.log("document deleted")
         }
@@ -135,31 +144,63 @@ export async function deleteUser(userID: string, debug = false) {
  */
 export async function login(userName: string, password: string, debug = false): Promise<User> {
     return new Promise(async (resolve, reject) => {
-        let databaseName = settings.databaseName
-        let userCollectionName = settings.userCollectionName
+        let databaseName = settings.databaseName;
+        let userCollectionName = settings.userCollectionName;
         if (debug) {
-            databaseName = settings.databaseName + "-debug"
-            userCollectionName = settings.userCollectionName + "-debug"
+            databaseName = settings.databaseName + "-debug";
+            userCollectionName = settings.userCollectionName + "-debug";
         }
 
-        let db = await getClient()
-        let dbo = db.db(databaseName)
-        dbo.collection(userCollectionName).findOne({ userName: userName }, async (err, res: null | User) => {
-            if (err) reject(err)
-            else if (res === null) {
-                reject("No such user")
-            } else {
-                if (res.password) {
-                    let match = await bcrypt.compare(password, res.password);
-                    if (match) {
-                        resolve(res)
-                    } else {
-                        reject("Wrong password")
+        let db = await getClient();
+        let dbo = db.db(databaseName);
+        try {
+            let docs = await dbo.collection<User>(userCollectionName)
+                .aggregate([
+                    {
+                        '$lookup': {
+                            'from': 'user',
+                            'localField': 'friends',
+                            'foreignField': '_id',
+                            'as': 'friends'
+                        }
+                    }, {
+                        '$match': {
+                            'userName': userName
+                        }
+                    }, {
+                        '$project': {
+                            'avatar': 1,
+                            'userName': 1,
+                            'password': 1,
+                            'sex': 1,
+                            'dateOfBirth': 1,
+                            'friends': {
+                                'userName': 1,
+                                '_id': 1,
+                                'sex': 1,
+                                'dateOfBirth': 1,
+                                'avatar': 1
+                            }
+                        }
                     }
+                ]).toArray();
+
+            if (docs[0].password) {
+                let match = await bcrypt.compare(password, docs[0].password);
+                if (match) {
+                    resolve(docs[0])
+                } else {
+                    reject("Wrong password")
                 }
+            } else {
+                reject("Wrong password")
             }
-            db.close()
-        })
+        } catch (e) {
+            console.log(e);
+        }
+
+        await db.close()
+
     })
 }
 
@@ -171,39 +212,39 @@ export async function login(userName: string, password: string, debug = false): 
  */
 export async function addFriend(user: User, friend: User, debug = false): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-        let databaseName = settings.databaseName
-        let userCollectionName = settings.userCollectionName
+        let databaseName = settings.databaseName;
+        let userCollectionName = settings.userCollectionName;
         if (debug) {
-            databaseName = settings.databaseName + "-debug"
-            userCollectionName = settings.userCollectionName + "-debug"
+            databaseName = settings.databaseName + "-debug";
+            userCollectionName = settings.userCollectionName + "-debug";
         }
-        let db = await getClient()
-        let dbo = db.db(databaseName)
+        let db = await getClient();
+        let dbo = db.db(databaseName);
         if (user._id && friend._id) {
-            if (user._id == friend._id) reject(false)
+            if (user._id == friend._id) reject(false);
 
-            dbo.collection(userCollectionName).updateOne({ _id: new MongoClient.ObjectID(user._id) }, { $addToSet: { friends: new MongoClient.ObjectID(friend._id) } }, (err, res) => {
+            dbo.collection(userCollectionName).updateOne({_id: new MongoClient.ObjectID(user._id)}, {$addToSet: {friends: new MongoClient.ObjectID(friend._id)}}, (err, res) => {
                 if (err) {
-                    console.log(err)
+                    console.log(err);
                     reject(false)
                 } else {
-                    dbo.collection(settings.userCollectionName).updateOne({ _id: new MongoClient.ObjectID(friend._id) }, { $addToSet: { friends: new MongoClient.ObjectID(user._id) } }, (err, res) => {
+                    dbo.collection(settings.userCollectionName).updateOne({_id: new MongoClient.ObjectID(friend._id)}, {$addToSet: {friends: new MongoClient.ObjectID(user._id)}}, (err, res) => {
                         if (err) {
-                            console.log(err)
-                            reject(false)
+                            console.log(err);
+                            reject(false);
                         } else {
-                            console.log("friend added")
-                            resolve(true)
+                            console.log("friend added");
+                            resolve(true);
                         }
-                        db.close()
+                        db.close();
                     })
                 }
 
             })
         } else {
-            db.close()
-            console.log("No user id field")
-            reject(false)
+            db.close();
+            console.log("No user id field");
+            reject(false);
         }
     })
 
@@ -215,33 +256,33 @@ export async function addFriend(user: User, friend: User, debug = false): Promis
  */
 export async function getFriendList(user: User, debug = false): Promise<User[]> {
     return new Promise(async (resolve, reject) => {
-        let databaseName = settings.databaseName
-        let userCollectionName = settings.userCollectionName
+        let databaseName = settings.databaseName;
+        let userCollectionName = settings.userCollectionName;
         if (debug) {
-            databaseName = settings.databaseName + "-debug"
-            userCollectionName = settings.userCollectionName + "-debug"
+            databaseName = settings.databaseName + "-debug";
+            userCollectionName = settings.userCollectionName + "-debug";
         }
-        let db = await getClient()
-        let dbo = db.db(databaseName)
+        let db = await getClient();
+        let dbo = db.db(databaseName);
         if (user._id) {
             try {
-                let u = await dbo.collection(userCollectionName).findOne({ _id: new MongoClient.ObjectID(user._id) })
+                let u = await dbo.collection(userCollectionName).findOne({_id: new MongoClient.ObjectID(user._id)});
                 if (u !== null) {
-                    let friendsID: string[] = u.friends
-                    let friends: User[] = await dbo.collection(userCollectionName).find({ _id: { $in: friendsID } }, { projection: { password: 0 } }).toArray()
-                    resolve(friends)
+                    let friendsID: string[] = u.friends;
+                    let friends: User[] = await dbo.collection(userCollectionName).find({_id: {$in: friendsID}}, {projection: {password: 0}}).toArray();
+                    resolve(friends);
                 } else {
-                    reject("getFriendList: No such user")
+                    reject("getFriendList: No such user");
                 }
 
             } catch (err) {
-                reject(err)
+                reject(err);
             }
 
         } else {
-            reject("User doesn't have id")
+            reject("User doesn't have id");
         }
-        db.close()
+        await db.close();
     })
 }
 
@@ -249,20 +290,50 @@ export async function getFriendList(user: User, debug = false): Promise<User[]> 
  *  Search user by it user name.
  *  This will return a list of user which have the similar user name
  * @param userName User's user name
- * @param debug 
+ * @param debug
  */
 export async function searchPeople(userName: string, debug = false): Promise<User[]> {
     return new Promise(async (resolve, reject) => {
-        let databaseName = settings.databaseName
-        let userCollectionName = settings.userCollectionName
+        let databaseName = settings.databaseName;
+        let userCollectionName = settings.userCollectionName;
         if (debug) {
-            databaseName = settings.databaseName + "-debug"
-            userCollectionName = settings.userCollectionName + "-debug"
+            databaseName = settings.databaseName + "-debug";
+            userCollectionName = settings.userCollectionName + "-debug";
         }
-        let db = await getClient()
-        let dbo = db.db(databaseName)
+        let db = await getClient();
+        let dbo = db.db(databaseName);
         try {
-            let userList: User[] = await dbo.collection(userCollectionName).find({ userName: { $regex: userName } }, { projection: { password: 0 } }).limit(10).toArray()
+            let userList: User[] = await dbo.collection(userCollectionName).aggregate([
+                {
+                    '$lookup': {
+                        'from': 'user',
+                        'localField': 'friends',
+                        'foreignField': '_id',
+                        'as': 'friends'
+                    }
+                }, {
+                    '$match': {
+                        'userName': {
+                            '$regex': 'siri'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'avatar': 1,
+                        'userName': 1,
+                        'password': 1,
+                        'sex': 1,
+                        'dateOfBirth': 1,
+                        'friends': {
+                            'userName': 1,
+                            '_id': 1,
+                            'sex': 1,
+                            'dateOfBirth': 1,
+                            'avatar': 1
+                        }
+                    }
+                }
+            ]).limit(10).toArray();
             resolve(userList)
         } catch (err) {
             reject(err)
@@ -271,26 +342,54 @@ export async function searchPeople(userName: string, debug = false): Promise<Use
     })
 }
 
+export async function writeFeed(feed: Feed): Promise<Feed | undefined> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        let result = await dbo.collection<Feed>(settings.feedCollectionName).insertOne(feed);
+        return {...feed, _id: result.insertedId.toHexString()}
+    } catch (e) {
+        console.log(e);
+    }
+    return
+}
 
-// init().then(async () => {
-//     let user: User = { _id: "5cfd13f2058e103c1a3160a2", userName: "h", password: "q", dateOfBirth: "1990", sex: "male" }
-//     let user2: User = { _id: "5cfd224976f6e84a14dde3f6", userName: "ha", password: "q", dateOfBirth: "1990", sex: "male" }
-//     let user3: User = { _id: "5cfd22568785e54a3459e334", userName: "haa", password: "q", dateOfBirth: "1990", sex: "male" }
+export async function deleteFeed(feed: Feed): Promise<void> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        await dbo.collection(settings.feedCollectionName).deleteOne({_id: new ObjectId(feed._id)});
+    } catch (e) {
+        console.log(e);
+    }
+}
 
-//     // addUser(user3).then((id)=>{
+/**
+ * add like
+ * @param feed User's feed
+ * @param user user who press like
+ */
+export async function addFeedLike(feed: Feed, user: User): Promise<void> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        await dbo.collection(settings.feedCollectionName).updateOne({_id: new ObjectId(feed._id)}, {$addToSet: {likes: user._id}});
+    } catch (e) {
+        console.log(e);
+    }
+}
 
-//     // }).catch((err)=>{
-//     //     console.log(err)
-//     // })
-
-
-//     // deleteUser("5cfc01b7d3bd2917fe38934b")
-//     // login("h", "q").then((info)=>{
-//     //     console.log(info)
-//     // }).catch((err)=>{
-//     //     console.log(err)
-//     // })
-//     // addFriend(user2, user3)
-//     let list = await getFriendList(user2)
-//     console.log(list)
-// })
+/**
+ * remove like
+ * @param feed User's feed
+ * @param user user who press like
+ */
+export async function deleteFeedLike(feed: Feed, user: User): Promise<void> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        await dbo.collection(settings.feedCollectionName).updateOne({_id: new ObjectId(feed._id)}, {$pull: {likes: user._id}});
+    } catch (e) {
+        console.log(e);
+    }
+}

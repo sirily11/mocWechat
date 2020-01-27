@@ -27,7 +27,7 @@ class FriendPage extends StatelessWidget {
                   child: JumpingDotsProgressIndicator(
                     fontSize: 25,
                     numberOfDots: 5,
-                    color: Theme.of(context).primaryTextTheme.body1.color,
+                    color: Theme.of(context).primaryTextTheme.bodyText1.color,
                   ),
                 ),
         );

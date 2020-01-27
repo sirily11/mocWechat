@@ -3,16 +3,28 @@ import * as http from 'http';
 import * as WebSocket from 'ws';
 import * as url from "url"
 import * as cors from "cors"
+
 import {User} from './userObj';
 import {addUser, init, login, addFriend, getFriendList, searchPeople} from './user';
 import {MessageQueue, Member, Message, createNewMember} from './chat/chat';
 import {router} from "./routes/routes";
 
 
+
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(router);
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Headers', 'Content-type,Authorization');
+    next();
+});
+app.use((err: any, req: any, res: any, next: any) => {
+    if (err.name === 'UnauthorizedError') {
+        res.status(401).send({err: "Invalid token"});
+    }
+});
+
 //initialize a simple http server
 const server = http.createServer(app);
 //initialize the WebSocket server instance

@@ -34,12 +34,13 @@ class User {
           : List<User>.from(json["friends"].map((x) => User.fromJson(x))),
       password: json["password"] == null ? null : json["password"],
       sex: json["sex"] == null ? null : json["sex"],
-      userId: json["userID"] == null ? null : json["userID"],
+      userId: json["userID"] == null ? json['_id'] : json["userID"],
       userName: json["userName"] == null ? null : json["userName"],
       lastMessage: json['lastMessage'] == null ? null : json['lastMessage'],
       avatar: json['avatar']);
 
   Map<String, dynamic> toJson() => {
+        "_id": userId,
         "dateOfBirth":
             dateOfBirth == null ? null : dateOfBirth.toIso8601String(),
         "friends": friends == null
@@ -124,7 +125,7 @@ class Feed {
         comments: List<Comment>.from(
             json["comments"].map((x) => Comment.fromJson(x))),
         content: json["content"],
-        id: json["id"],
+        id: json["id"] ?? json['_id'],
         images: List<String>.from(json["images"].map((x) => x)),
         likes: List<String>.from(json["likes"].map((x) => x)),
         publishDate: DateTime.parse(json["publish_date"]),
@@ -132,13 +133,9 @@ class Feed {
       );
 
   Map<String, dynamic> toJson() => {
-        "comments": List<dynamic>.from(comments.map((x) => x.toJson())),
         "content": content,
-        "id": id,
         "images": List<dynamic>.from(images.map((x) => x)),
-        "likes": List<dynamic>.from(likes.map((x) => x)),
         "publish_date": publishDate.toIso8601String(),
-        "user": user.toJson(),
       };
 }
 

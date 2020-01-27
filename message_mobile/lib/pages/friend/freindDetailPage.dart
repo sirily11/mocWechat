@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
+import 'package:message_mobile/pages/login/views/errorDialog.dart';
+import 'package:provider/provider.dart';
 
 /// Friend Detail Page where user can see the user
 /// If the friend is in the self's friend list,
@@ -17,6 +20,7 @@ class FriendDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ChatModel model = Provider.of(context);
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(),
@@ -39,11 +43,11 @@ class FriendDetailPage extends StatelessWidget {
                   .copyWith(fontSize: 30),
             ),
           ),
-          self.friends.contains(friend) 
+          self.friends.contains(friend)
               ? Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RaisedButton(
-                    onPressed: (){
+                    onPressed: () {
                       //TODO: Add Delete Friend function
                     },
                     child: Text("Delete Friend"),
@@ -52,8 +56,18 @@ class FriendDetailPage extends StatelessWidget {
               : Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RaisedButton(
-                    onPressed: (){
-                      //TODO: Add Add friend function
+                    onPressed: () async {
+                      try {
+                        await model.addFriend(friend);
+                      } catch (err) {
+                        showDialog(
+                          context: context,
+                          builder: (c) => ErrorDialog(
+                            title: "Add Friend Error",
+                            content: err,
+                          ),
+                        );
+                      }
                     },
                     child: Text("Add Friend"),
                   ),
