@@ -305,6 +305,8 @@ export async function searchPeople(userName: string, debug = false): Promise<Use
         let db = await getClient();
         let dbo = db.db(databaseName);
         try {
+
+
             let userList: User[] = await dbo.collection(userCollectionName).aggregate([
                 {
                     '$lookup': {
@@ -353,11 +355,15 @@ export async function getAllFeed(user: User, begin: number): Promise<Feed[]> {
     let db = await getClient();
     let dbo = db.db(settings.databaseName);
     try {
+        let u = await dbo.collection(settings.userCollectionName).findOne({_id: new ObjectId(user._id)});
+        let friends: [] = u?.friends  ?? [];
+        let friendsObjs = friends.map((f) => new ObjectId(f));
+        console.log("People", [new ObjectId(user._id), ...friendsObjs]);
         return await dbo.collection<Feed>(settings.feedCollectionName)
             .aggregate([
                 {
                     '$match': {
-                        'user': new ObjectId(user._id)
+                        'user': {$in: [new ObjectId(user._id), ...friendsObjs]}
                     }
                 }, {
                     '$lookup': {
@@ -367,8 +373,6 @@ export async function getAllFeed(user: User, begin: number): Promise<Feed[]> {
                         'as': 'user'
                     }
                 },
-
-
                 {
                     '$lookup': {
                         'from': 'user',
@@ -526,7 +530,7 @@ export async function writeComment(comment: Comment, feedID: string): Promise<St
     try {
         let result = await dbo
             .collection<Feed>(settings.feedCollectionName)
-            .findOneAndUpdate({_id: new ObjectId(feedID)}, {$push: {comments: {_id:  objectID, ...comment}}});
+            .findOneAndUpdate({_id: new ObjectId(feedID)}, {$push: {comments: {_id: objectID, ...comment}}});
         return objectID.toHexString()
     } catch (e) {
         console.log(e);
