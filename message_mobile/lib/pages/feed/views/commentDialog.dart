@@ -42,10 +42,10 @@ class _CommentDialogState extends State<CommentDialog> {
                 user: model.currentUser,
                 postedTime: DateTime.now(),
                 isReply: false,
-                replayTo: null);
+                replyTo: null);
             if (widget.comment != null) {
               replyComment.isReply = true;
-              replyComment.replayTo = widget.comment.user;
+              replyComment.replyTo = widget.comment.user;
             }
             setState(() {
               isLoading = true;

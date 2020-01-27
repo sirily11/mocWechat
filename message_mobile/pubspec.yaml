@@ -25,6 +25,8 @@ dependencies:
   dio: ^3.0.8
   web_socket_channel: ^1.1.0
   community_material_icon: ^3.5.95
+  pull_to_refresh: ^1.5.8
+  liquid_pull_to_refresh: ^1.1.1
   google_fonts: ^0.3.3
   progress_dialog: ^1.2.0
   provider: ^4.0.2

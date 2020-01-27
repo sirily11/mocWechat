@@ -122,17 +122,28 @@ class Feed {
   });
 
   factory Feed.fromJson(Map<String, dynamic> json) => Feed(
-        comments: List<Comment>.from(
-            json["comments"].map((x) => Comment.fromJson(x))),
+        comments: json['comments'] != null
+            ? List<Comment>.from(
+                json["comments"].map((x) => Comment.fromJson(x)))
+            : [],
         content: json["content"],
-        id: json["id"] ?? json['_id'],
-        images: List<String>.from(json["images"].map((x) => x)),
-        likes: List<String>.from(json["likes"].map((x) => x)),
-        publishDate: DateTime.parse(json["publish_date"]),
-        user: User.fromJson(json["user"]),
+        id: json['_id'],
+        images: json['images'] != null
+            ? List<String>.from(json["images"].map((x) => x))
+            : [],
+        likes: json['likes'] != null
+            ? List<String>.from(json["likes"].map((x) => x))
+            : [],
+        publishDate: json['publish_date'] != null
+            ? DateTime.parse(json["publish_date"])
+            : null,
+        user: json['user'] is String || json['user'] == null
+            ? null
+            : User.fromJson(json["user"]),
       );
 
   Map<String, dynamic> toJson() => {
+        "_id": id,
         "content": content,
         "images": List<dynamic>.from(images.map((x) => x)),
         "publish_date": publishDate.toIso8601String(),
@@ -140,26 +151,31 @@ class Feed {
 }
 
 class Comment {
+  String id;
   String content;
   bool isReply;
   DateTime postedTime;
-  User replayTo;
+  User replyTo;
   User user;
+  String feedID;
 
   Comment({
+    @required this.id,
     @required this.content,
     @required this.isReply,
     @required this.postedTime,
-    @required this.replayTo,
+    @required this.replyTo,
     @required this.user,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) => Comment(
+        id: json['_id'],
         content: json["content"],
         isReply: json["is_reply"],
         postedTime: DateTime.parse(json["posted_time"]),
-        replayTo:
-            json["replay_to"] == null ? null : User.fromJson(json["replay_to"]),
+        replyTo: json["reply_to"] == null || json["is_reply"] == false
+            ? null
+            : User.fromJson(json["reply_to"]),
         user: User.fromJson(json["user"]),
       );
 
@@ -167,7 +183,7 @@ class Comment {
         "content": content,
         "is_reply": isReply,
         "posted_time": postedTime.toIso8601String(),
-        "replay_to": replayTo == null ? null : replayTo.toJson(),
-        "user": user.toJson(),
+        "reply_to": replyTo == null ? null : replyTo.userId,
+        "user": user.userId,
       };
 }

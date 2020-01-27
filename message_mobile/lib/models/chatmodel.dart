@@ -48,48 +48,48 @@ class ChatModel with ChangeNotifier {
           "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg");
 
   User currentUser;
-  //TODO: Remove this field when finished implementing request
-  List<Feed> feeds = [
-    Feed(
-        id: "1",
-        content: doc,
-        publishDate: DateTime.now(),
-        likes: [],
-        user: testFriend,
-        comments: [
-          Comment(
-            content: "Dark Willow So Cute",
-            isReply: false,
-            user: testFriend,
-            replayTo: null,
-            postedTime: DateTime.now(),
-          ),
-          Comment(
-            content: "I agree",
-            isReply: true,
-            user: testFriend2,
-            replayTo: testFriend,
-            postedTime: DateTime.now(),
-          )
-        ],
-        images: [
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
-        ]),
-    Feed(
-        id: "2",
-        content: doc,
-        publishDate: DateTime.now(),
-        likes: [],
-        user: testFriend,
-        comments: [],
-        images: [
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
-        ])
-  ];
+  List<Feed> feeds = [];
+  // List<Feed> feeds = [
+  //   Feed(
+  //       id: "1",
+  //       content: doc,
+  //       publishDate: DateTime.now(),
+  //       likes: [],
+  //       user: testFriend,
+  //       comments: [
+  //         Comment(
+  //           content: "Dark Willow So Cute",
+  //           isReply: false,
+  //           user: testFriend,
+  //           replayTo: null,
+  //           postedTime: DateTime.now(),
+  //         ),
+  //         Comment(
+  //           content: "I agree",
+  //           isReply: true,
+  //           user: testFriend2,
+  //           replayTo: testFriend,
+  //           postedTime: DateTime.now(),
+  //         )
+  //       ],
+  //       images: [
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
+  //       ]),
+  //   Feed(
+  //       id: "2",
+  //       content: doc,
+  //       publishDate: DateTime.now(),
+  //       likes: [],
+  //       user: testFriend,
+  //       comments: [],
+  //       images: [
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
+  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
+  //       ])
+  // ];
 
   ChatModel({Dio dio}) {
     // this.currentUser = testOwner;
@@ -167,6 +167,12 @@ class ChatModel with ChangeNotifier {
   //   )
   // ];
 
+  /// Call this function after successfully logined
+  /// Such as sign up, and login functions have been called
+  Future onSuccessfullyLogin() async {
+    notifyListeners();
+  }
+
   /// Search friend by their [userName]
   /// This will return a list of friend
   Future<List<User>> searchFriend({@required String userName}) async {
@@ -187,9 +193,11 @@ class ChatModel with ChangeNotifier {
   Future<void> addFriend(User friend) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
-    Response response = await this.networkProvider.post("$httpURL/add/friend",
-        data: {"friend": friend.toJson()},
-        options: Options(headers: {"Authorization": "Bearer $token"}));
+    Response response = await this.networkProvider.post(
+          "$httpURL/add/friend",
+          data: {"friend": friend.toJson()},
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
     this.currentUser.friends.add(friend);
     notifyListeners();
   }
@@ -218,16 +226,26 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Feed>> getFeeds() async {
-    await Future.delayed(Duration(milliseconds: 300));
-    //TODO: Add real requests
-    return feeds;
+  Future<void> getFeeds() async {
+    // await Future.delayed(Duration(milliseconds: 300));
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
+    Response<List> response = await this.networkProvider.get(
+          "$httpURL/feed",
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+
+    this.feeds = response.data.map((d) => Feed.fromJson(d)).toList();
+    notifyListeners();
   }
 
   Future writeFeed(String content, List<File> images) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
     Feed feed = Feed(
+      id: null,
+      comments: [],
       content: content,
-      id: DateTime.now().toString(),
       user: currentUser,
       publishDate: DateTime.now(),
       likes: [],
@@ -236,37 +254,68 @@ class ChatModel with ChangeNotifier {
               "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg")
           .toList(),
     );
+    Response response = await this.networkProvider.post(
+          "$httpURL/feed",
+          data: feed.toJson(),
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+    var nFeed = Feed.fromJson(response.data);
+    feed.id = nFeed.id;
     feeds.add(feed);
     notifyListeners();
   }
 
   Future replyToFeed(Feed feed, Comment comment) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
     await Future.delayed(Duration(milliseconds: 300));
     final Feed f = feeds.firstWhere((f) => f.id == feed.id, orElse: () => null);
     if (f != null) {
+      Response response = await this.networkProvider.post(
+            "$httpURL/comment",
+            queryParameters: {"feedID": feed.id},
+            data: comment.toJson(),
+            options: Options(headers: {"Authorization": "Bearer $token"}),
+          );
+      comment.id = response.data['_id'];
       f.comments.add(comment);
     }
     notifyListeners();
   }
 
   Future deleteComment(Feed feed, Comment comment) async {
-    await Future.delayed(Duration(milliseconds: 300));
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
     final Feed f = feeds.firstWhere((f) => f.id == feed.id, orElse: () => null);
     if (f != null) {
+      Response response = await this.networkProvider.delete(
+            "$httpURL/comment",
+            queryParameters: {"feedID": feed.id},
+            data: {"_id": comment.id},
+            options: Options(headers: {"Authorization": "Bearer $token"}),
+          );
       f.comments.remove(comment);
     }
     notifyListeners();
   }
 
   Future deleteFeed(Feed feed) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
     feed.isLoading = true;
     notifyListeners();
-    await Future.delayed(Duration(milliseconds: 2300));
-    this.feeds.remove(feed);
+    await this.networkProvider.delete(
+          "$httpURL/feed",
+          data: feed.toJson(),
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+    this.feeds.removeWhere((f) => f.id == feed.id);
     notifyListeners();
   }
 
   Future pressLike(String id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
     final Feed feed = feeds.firstWhere((f) => f.id == id, orElse: () => null);
     if (feed.likes.contains(currentUser.userId)) {
       await pressUnLike(id);
@@ -274,14 +323,30 @@ class ChatModel with ChangeNotifier {
       await Future.delayed(
         Duration(milliseconds: 300),
       );
+      await this.networkProvider.post(
+            "$httpURL/feed-like",
+            data: feed.toJson(),
+            options: Options(
+              headers: {"Authorization": "Bearer $token"},
+            ),
+          );
       feed.likes.add(currentUser.userId);
       notifyListeners();
     }
   }
 
   Future pressUnLike(String id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
     await Future.delayed(Duration(milliseconds: 300));
     final Feed feed = feeds.firstWhere((f) => f.id == id, orElse: () => null);
+    await this.networkProvider.delete(
+          "$httpURL/feed-like",
+          data: feed.toJson(),
+          options: Options(
+            headers: {"Authorization": "Bearer $token"},
+          ),
+        );
     feed.likes.remove(currentUser.userId);
     notifyListeners();
   }
@@ -295,6 +360,7 @@ class ChatModel with ChangeNotifier {
       this.currentUser = User.fromJson(response.data);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString("token", response.data['token']);
+      await onSuccessfullyLogin();
     } on DioError catch (err) {
       throw (err.response);
     } finally {
@@ -311,6 +377,7 @@ class ChatModel with ChangeNotifier {
       this.currentUser = User.fromJson(response.data);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString("token", response.data['token']);
+      await onSuccessfullyLogin();
     } on DioError catch (err) {
       throw (err.response);
     } finally {

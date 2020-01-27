@@ -3,12 +3,12 @@ import {User} from "../userObj";
 import {
     addFeedLike,
     addFriend,
-    addUser,
-    deleteFeed, deleteFeedLike,
+    addUser, deleteComment,
+    deleteFeed, deleteFeedLike, getAllFeed,
     getFriendList,
     init,
     login,
-    searchPeople,
+    searchPeople, writeComment,
     writeFeed
 } from "../user";
 import * as cors from "cors";
@@ -16,7 +16,8 @@ import * as exjwt from "express-jwt";
 import * as jwt from "jsonwebtoken";
 import {settings} from "../settings/settings";
 import set = Reflect.set;
-import {Feed} from "../feed/feedObj";
+import {Comment, Feed} from "../feed/feedObj";
+import {ObjectId} from 'mongodb';
 
 export const router = express.Router();
 router.use(express.json());
@@ -76,7 +77,7 @@ router.post("/add/friend", jwtMW, async (req, res) => {
 router.all("/feed", jwtMW, async (req, res) => {
     // @ts-ignore
     let user: User = req.user;
-    let feed: Feed = {...req.body, user: user._id};
+    let feed: Feed = {...req.body, user: new ObjectId(user._id)};
 
     try {
         if (req.method == "POST") {
@@ -85,6 +86,10 @@ router.all("/feed", jwtMW, async (req, res) => {
         } else if (req.method == "DELETE") {
             await deleteFeed(feed);
             res.send({status: "ok"})
+        } else if (req.method == "GET") {
+            let begin: string = req.query.begin;
+            let feeds = await getAllFeed(user, begin ? parseInt(begin) : 0);
+            res.send(feeds);
         }
 
     } catch (e) {
@@ -96,7 +101,7 @@ router.all("/feed", jwtMW, async (req, res) => {
 router.all("/feed-like", jwtMW, async (req, res) => {
     // @ts-ignore
     let user: User = req.user;
-    let feed: Feed = {...req.body, user: user._id};
+    let feed: Feed = {...req.body, user: new ObjectId(user._id)};
 
     try {
         if (req.method == "POST") {
@@ -105,6 +110,31 @@ router.all("/feed-like", jwtMW, async (req, res) => {
             await deleteFeedLike(feed, user);
         }
         res.send({status: "OK"})
+    } catch (e) {
+        res.status(400).send({err: e})
+
+    }
+});
+
+router.all("/comment", jwtMW, async (req, res) => {
+    // @ts-ignore
+    let user: User = req.user;
+    let comment: Comment = {...req.body, user: new ObjectId(user._id)};
+    if (req.body.reply_to) {
+        // @ts-ignore
+        comment.reply_to = new ObjectId(req.body.reply_to);
+    }
+    let feedID: string = req.query.feedID;
+
+    try {
+        if (req.method == "POST") {
+            let objectID = await writeComment(comment, feedID);
+            res.send({...comment, _id: objectID})
+        } else if (req.method == "DELETE") {
+            await deleteComment(comment, feedID);
+            res.send({status: "OK"})
+        }
+
     } catch (e) {
         res.status(400).send({err: e})
 
@@ -125,6 +155,18 @@ router.get("/get/friends", async (req, res) => {
     } catch (err) {
         res.send([])
     }
+});
+
+router.post("/upload/feed-image",jwtMW, (req, res)=>{
+
+});
+
+router.post("/upload/avatar", jwtMW, (req, res)=>{
+
+});
+
+router.patch("/update/info", jwtMW, (req, res)=>{
+    
 });
 
 router.get("/search/user", async (req, res) => {

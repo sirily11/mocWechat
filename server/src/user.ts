@@ -1,9 +1,9 @@
 import * as MongoClient from "mongodb"
+import {ObjectId} from "mongodb"
 import * as bcrypt from "bcrypt"
 import {User} from './userObj';
 import {settings} from "./settings/settings";
-import {ObjectId} from "mongodb";
-import {Feed} from "./feed/feedObj";
+import {Feed, Comment} from "./feed/feedObj";
 
 /**
  * Get mongodb client
@@ -56,7 +56,9 @@ export async function init(debug = false) {
                 resolve();
             }
             db.close()
-        })
+        });
+
+
     })
 }
 
@@ -342,6 +344,129 @@ export async function searchPeople(userName: string, debug = false): Promise<Use
     })
 }
 
+/**
+ * Get all feed by user. This should list feed belongs to user and user's friend
+ * @param user
+ * @param begin begins at index
+ */
+export async function getAllFeed(user: User, begin: number): Promise<Feed[]> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        return await dbo.collection<Feed>(settings.feedCollectionName)
+            .aggregate([
+                {
+                    '$match': {
+                        'user': new ObjectId(user._id)
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'user',
+                        'localField': 'user',
+                        'foreignField': '_id',
+                        'as': 'user'
+                    }
+                },
+
+
+                {
+                    '$lookup': {
+                        'from': 'user',
+                        'localField': 'comments.user',
+                        'foreignField': '_id',
+                        'as': 'users'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'user',
+                        'localField': 'comments.reply_to',
+                        'foreignField': '_id',
+                        'as': 'reply_tos'
+                    }
+                }, {
+                    '$addFields': {
+                        'comments': {
+                            '$map': {
+                                'input': '$comments',
+                                'as': 'c',
+                                'in': {
+                                    '_id': '$$c._id',
+                                    'content': '$$c.content',
+                                    'is_reply': '$$c.is_reply',
+                                    'posted_time': '$$c.posted_time',
+                                    'user': {
+                                        '_id': '$$c.user',
+                                        'userName': {
+                                            '$arrayElemAt': [
+                                                '$users.userName', {
+                                                    '$indexOfArray': [
+                                                        '$users._id', '$$c.user'
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    'reply_to': {
+                                        '_id': '$$c.user',
+                                        'userName': {
+                                            '$arrayElemAt': [
+                                                '$reply_tos.userName', {
+                                                    '$indexOfArray': [
+                                                        '$reply_tos._id', '$$c.reply_to'
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'reply_tos': 0,
+                        'users': 0
+                    }
+                }
+                ,
+                {
+                    '$project': {
+                        'content': 1,
+                        'images': 1,
+                        'likes': 1,
+                        'comments': 1,
+                        'publish_date': 1,
+                        'user': {
+                            '$arrayElemAt': [
+                                '$user', 0
+                            ]
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'user': {
+                            'password': 0,
+                            'friends': 0
+                        },
+                        // 'comments': {
+                        //     'content': 1,
+                        //     'password': 0,
+                        //     'friends': 0,
+                        //     'dateOfBirth': 0,
+                        //     'sex': 0
+                        // }
+                    }
+                }
+            ])
+            .skip(begin)
+            .limit(30)
+            .toArray();
+    } catch (e) {
+        console.log(e);
+    }
+    return []
+}
+
 export async function writeFeed(feed: Feed): Promise<Feed | undefined> {
     let db = await getClient();
     let dbo = db.db(settings.databaseName);
@@ -389,6 +514,31 @@ export async function deleteFeedLike(feed: Feed, user: User): Promise<void> {
     let dbo = db.db(settings.databaseName);
     try {
         await dbo.collection(settings.feedCollectionName).updateOne({_id: new ObjectId(feed._id)}, {$pull: {likes: user._id}});
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+export async function writeComment(comment: Comment, feedID: string): Promise<String | undefined> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    let objectID = new ObjectId();
+    try {
+        let result = await dbo
+            .collection<Feed>(settings.feedCollectionName)
+            .findOneAndUpdate({_id: new ObjectId(feedID)}, {$push: {comments: {_id:  objectID, ...comment}}});
+        return objectID.toHexString()
+    } catch (e) {
+        console.log(e);
+    }
+    return
+}
+
+export async function deleteComment(comment: Comment, feedID: string): Promise<void> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        await dbo.collection(settings.feedCollectionName).updateOne({_id: new ObjectId(feedID)}, {$pull: {comments: {_id: new ObjectId(comment._id)}}});
     } catch (e) {
         console.log(e);
     }

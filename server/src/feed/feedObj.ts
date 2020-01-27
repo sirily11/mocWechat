@@ -17,6 +17,5 @@ export interface Comment{
     user: User,
     posted_time: Date,
     is_reply: boolean,
-    replay_to?: User
-
+    reply_to?: User
 }

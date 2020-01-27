@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:message_mobile/models/chatmodel.dart';
+import 'package:message_mobile/pages/login/views/errorDialog.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:zefyr/zefyr.dart';
@@ -26,10 +28,23 @@ class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
   }
 
   void _saveDocument(BuildContext context) async {
-    final content = jsonEncode(_controller.document);
-    ChatModel model = Provider.of(context, listen: false);
-    await model.writeFeed(content, images);
-    Navigator.pop(context);
+    try {
+      var pr = ProgressDialog(context);
+      pr.show();
+      final content = jsonEncode(_controller.document);
+      ChatModel model = Provider.of(context, listen: false);
+      await model.writeFeed(content, images);
+      await pr.hide();
+      Navigator.pop(context);
+    } catch (err) {
+      showDialog(
+        context: context,
+        builder: (c) => ErrorDialog(
+          content: err,
+          title: "Network Error",
+        ),
+      );
+    }
   }
 
   @override

@@ -55,7 +55,7 @@ class CommentRow extends StatelessWidget {
             TextSpan(text: "${comment.user.userName}: "),
             comment.isReply
                 ? TextSpan(
-                    text: "@${comment.replayTo.userName} ",
+                    text: "@${comment.replyTo?.userName} ",
                     style: Theme.of(context)
                         .primaryTextTheme
                         .bodyText2
