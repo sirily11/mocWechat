@@ -3,18 +3,21 @@ import * as http from 'http';
 import * as WebSocket from 'ws';
 import * as url from "url"
 import * as cors from "cors"
+import * as fileUpload from "express-fileupload";
 
 import {User} from './userObj';
 import {addUser, init, login, addFriend, getFriendList, searchPeople} from './user';
 import {MessageQueue, Member, Message, createNewMember} from './chat/chat';
 import {router} from "./routes/routes";
-
+import * as path from "path";
 
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(fileUpload({limits: {fileSize: 50 * 1024 * 1024}}));
 app.use(router);
+app.use('/static', express.static(path.join(__dirname, 'routes/uploads')));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-type,Authorization');
     next();

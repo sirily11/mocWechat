@@ -8,7 +8,7 @@ import {
     getFriendList,
     init,
     login,
-    searchPeople, writeComment,
+    searchPeople, uploadAvatar, writeComment,
     writeFeed
 } from "../user";
 import * as cors from "cors";
@@ -18,6 +18,8 @@ import {settings} from "../settings/settings";
 import set = Reflect.set;
 import {Comment, Feed} from "../feed/feedObj";
 import {ObjectId} from 'mongodb';
+import {UploadedFile} from "express-fileupload";
+import * as path from "path";
 
 export const router = express.Router();
 router.use(express.json());
@@ -157,16 +159,83 @@ router.get("/get/friends", async (req, res) => {
     }
 });
 
-router.post("/upload/feed-image",jwtMW, (req, res)=>{
+router.post("/upload/feed-image", jwtMW, async (req, res) => {
+    try {
+        if (!req.files) {
+            res.send({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
+            // @ts-ignore
+            let files: UploadedFile[] = req.files;
 
+            for (const f of files) {
+                let p = path.join(__dirname, 'uploads', f.name);
+                await f.mv(p);
+            }
+
+
+            //send response
+            res.send({
+                status: true,
+                message: 'File is uploaded',
+                data: files.map((f) => {
+                    return {
+                        size: f.size,
+                        name: f.name,
+                        path: path.join("static", f.name)
+                    }
+                })
+            });
+        }
+    } catch (err) {
+        res.status(500).send(err.toString());
+    }
 });
 
-router.post("/upload/avatar", jwtMW, (req, res)=>{
+router.post("/upload/avatar", jwtMW, async (req, res) => {
+    try {
+        if (!req.files) {
+            res.send({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
+            // @ts-ignore
+            let file: UploadedFile = req.files.avatar;
+            let p = path.join(__dirname, 'uploads', file.name);
+            let dbPath = path.join('static', file.name);
+            // @ts-ignore
+            await uploadAvatar(dbPath, req.user);
+            await file.mv(p);
 
-});
+            //send response
+            res.send({
+                    status: true,
+                    message: 'File is uploaded',
+                    data: {
 
-router.patch("/update/info", jwtMW, (req, res)=>{
-    
+                        size: file.size,
+                        name: file.name,
+                        path: dbPath
+
+
+                    }
+                }
+            );
+        }
+    } catch
+        (err) {
+        res.status(500).send(err.toString());
+    }
+})
+;
+
+router.patch("/update/info", jwtMW, (req, res) => {
+
 });
 
 router.get("/search/user", async (req, res) => {

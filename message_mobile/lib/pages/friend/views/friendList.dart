@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/friend/freindDetailPage.dart';
+import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
@@ -51,10 +52,8 @@ class FriendRow extends StatelessWidget {
           ),
         );
       },
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).backgroundColor,
-        child: Text(friend.userName.substring(0, 1).toUpperCase(),
-            style: Theme.of(context).primaryTextTheme.body2),
+      leading: AvatarView(
+        user: friend,
       ),
       title: Text("${friend.userName}"),
     );

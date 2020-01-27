@@ -356,7 +356,7 @@ export async function getAllFeed(user: User, begin: number): Promise<Feed[]> {
     let dbo = db.db(settings.databaseName);
     try {
         let u = await dbo.collection(settings.userCollectionName).findOne({_id: new ObjectId(user._id)});
-        let friends: [] = u?.friends  ?? [];
+        let friends: [] = u?.friends ?? [];
         let friendsObjs = friends.map((f) => new ObjectId(f));
         console.log("People", [new ObjectId(user._id), ...friendsObjs]);
         return await dbo.collection<Feed>(settings.feedCollectionName)
@@ -543,6 +543,16 @@ export async function deleteComment(comment: Comment, feedID: string): Promise<v
     let dbo = db.db(settings.databaseName);
     try {
         await dbo.collection(settings.feedCollectionName).updateOne({_id: new ObjectId(feedID)}, {$pull: {comments: {_id: new ObjectId(comment._id)}}});
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+export async function uploadAvatar(imagePath: string, user: User): Promise<void> {
+    let db = await getClient();
+    let dbo = db.db(settings.databaseName);
+    try {
+        await dbo.collection(settings.userCollectionName).updateOne({_id: new ObjectId(user._id)}, {$set: {'avatar': imagePath}});
     } catch (e) {
         console.log(e);
     }

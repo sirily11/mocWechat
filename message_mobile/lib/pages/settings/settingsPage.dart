@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:json_schema_form/JSONSchemaForm.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
+import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
@@ -13,9 +17,13 @@ class SettingsPage extends StatelessWidget {
       child: Column(
         children: <Widget>[
           ListTile(
-            onTap: () {},
-            leading: CircleAvatar(
-              backgroundImage: AssetImage("assets/avatar.jpg"),
+            onTap: () async {
+              File file =
+                  await ImagePicker.pickImage(source: ImageSource.gallery);
+              await model.setAvatar(file);
+            },
+            leading: AvatarView(
+              user: model.currentUser,
             ),
             title: Text("Upload Profile Image"),
           ),

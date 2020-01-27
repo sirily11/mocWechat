@@ -52,7 +52,9 @@ class CommentRow extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: RichText(
           text: TextSpan(children: [
-            TextSpan(text: "${comment.user.userName}: "),
+            TextSpan(
+                text: "${comment.user.userName}: ",
+                style: Theme.of(context).primaryTextTheme.bodyText1),
             comment.isReply
                 ? TextSpan(
                     text: "@${comment.replyTo?.userName} ",
@@ -62,7 +64,9 @@ class CommentRow extends StatelessWidget {
                         .apply(color: Colors.blue),
                   )
                 : TextSpan(),
-            TextSpan(text: "${comment.content}")
+            TextSpan(
+                text: "${comment.content}",
+                style: Theme.of(context).primaryTextTheme.bodyText1)
           ]),
         ),
       ),

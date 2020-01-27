@@ -169,8 +169,11 @@ class ChatModel with ChangeNotifier {
 
   /// Call this function after successfully logined
   /// Such as sign up, and login functions have been called
-  Future onSuccessfullyLogin() async {
+  Future onSuccessfullyLogin(Response response) async {
     notifyListeners();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString("token", response.data['token']);
+    this.currentUser = User.fromJson(response.data);
   }
 
   /// Search friend by their [userName]
@@ -216,6 +219,7 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Update user data
   Future updateUser(Map<String, dynamic> data) async {
     await Future.delayed(Duration(milliseconds: 300));
     var user = User.fromJson(data);
@@ -226,6 +230,7 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// get all user's feed
   Future<void> getFeeds() async {
     // await Future.delayed(Duration(milliseconds: 300));
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -239,6 +244,7 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Write feed
   Future writeFeed(String content, List<File> images) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
@@ -265,6 +271,9 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// reply to the feed
+  /// if the reply is a [comment], then comment need to be provided,
+  /// otherwise, set [comment] to null
   Future replyToFeed(Feed feed, Comment comment) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
@@ -283,6 +292,10 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  ///Delete a particlar comment,
+  ///if the comment you delete is a comment's reply,
+  ///then [comment] need to be provided, otherwise, set
+  ///[comment] to null
   Future deleteComment(Feed feed, Comment comment) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
@@ -299,6 +312,7 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Delete a feed based on [feed]'s id
   Future deleteFeed(Feed feed) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
@@ -313,6 +327,9 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Press like button on on feed. If the feed
+  /// is already be liked by the user,
+  /// then unlike it
   Future pressLike(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
@@ -335,6 +352,7 @@ class ChatModel with ChangeNotifier {
     }
   }
 
+  /// Press unlike
   Future pressUnLike(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
@@ -357,10 +375,7 @@ class ChatModel with ChangeNotifier {
     try {
       Response response =
           await this.networkProvider.post("$httpURL/login", data: info);
-      this.currentUser = User.fromJson(response.data);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", response.data['token']);
-      await onSuccessfullyLogin();
+      await onSuccessfullyLogin(response);
     } on DioError catch (err) {
       throw (err.response);
     } finally {
@@ -374,10 +389,8 @@ class ChatModel with ChangeNotifier {
     try {
       Response response =
           await this.networkProvider.post("$httpURL/add/user", data: info);
-      this.currentUser = User.fromJson(response.data);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", response.data['token']);
-      await onSuccessfullyLogin();
+
+      await onSuccessfullyLogin(response);
     } on DioError catch (err) {
       throw (err.response);
     } finally {
@@ -385,6 +398,7 @@ class ChatModel with ChangeNotifier {
     }
   }
 
+  /// Set up http and websocket url
   Future setURL({@required Map<String, dynamic> info}) async {
     await Future.delayed(Duration(milliseconds: 300));
     if ((info['http'] as String).endsWith("/") ||
@@ -414,5 +428,22 @@ class ChatModel with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     this.websocketURL = prefs.get("websocket");
     this.httpURL = prefs.get("http");
+  }
+
+  Future setAvatar(File uploadFile) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
+    var data = FormData.fromMap(
+        {"avatar": await MultipartFile.fromFile(uploadFile.path)});
+
+    Response response = await this.networkProvider.post(
+          "$httpURL/upload/avatar",
+          data: data,
+          options: Options(
+            headers: {"Authorization": "Bearer $token"},
+          ),
+        );
+    this.currentUser.avatar = "$httpURL/${response.data['data']['path']}";
+    notifyListeners();
   }
 }
