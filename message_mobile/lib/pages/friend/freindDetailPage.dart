@@ -71,7 +71,18 @@ class FriendDetailPage extends StatelessWidget {
                     },
                     child: Text("Add Friend"),
                   ),
+                ),
+          self.friends.contains(friend)
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    onPressed: () {
+                      //TODO: Add start chatting
+                    },
+                    child: Text("Start Chatting"),
+                  ),
                 )
+              : Container()
         ],
       ),
     );

@@ -176,7 +176,7 @@ export class MessageQueue {
     async getMessage(receiver: string): Promise<Message> {
         return new Promise(async (resolve, reject) => {
             if (this.db) {
-                let message = await this.db.collection(settings.messageCollectionName).findOneAndDelete({ receiver: receiver })
+                let message = await this.db.collection(settings.messageCollectionName).findOneAndDelete({ receiver: receiver });
                 resolve(message.value)
             } else {
                 reject("No database")
