@@ -6,6 +6,7 @@ import 'package:json_schema_form/JSONSchemaForm.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
+import 'package:message_mobile/pages/login/views/errorDialog.dart';
 import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
@@ -18,9 +19,21 @@ class SettingsPage extends StatelessWidget {
         children: <Widget>[
           ListTile(
             onTap: () async {
-              File file =
-                  await ImagePicker.pickImage(source: ImageSource.gallery);
-              await model.setAvatar(file);
+              try {
+                File file =
+                    await ImagePicker.pickImage(source: ImageSource.gallery);
+                if (file != null) {
+                  await model.setAvatar(file);
+                }
+              } catch (err) {
+                showDialog(
+                  context: context,
+                  builder: (c) => ErrorDialog(
+                    content: err.toString(),
+                    title: "Update avatar error",
+                  ),
+                );
+              }
             },
             leading: AvatarView(
               user: model.currentUser,
@@ -29,8 +42,6 @@ class SettingsPage extends StatelessWidget {
           ),
           ListTile(
             onTap: () {
-              TextEditingController controller =
-                  TextEditingController(text: model.currentUser.userName);
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(

@@ -40,7 +40,7 @@ router.post("/add/user", async (req, res) => {
         if (user.userName && user.password) {
             await init();
             let uid = await addUser({friends: [], ...user});
-            let token = jwt.sign({_id: user._id, password: user.password}, settings.secret, {expiresIn: 3600 * 24 * 7});
+            let token = jwt.sign({_id: uid}, settings.secret, {expiresIn: 3600 * 24 * 7});
             res.send({...user, userID: uid, friends: [], token: token});
         } else {
             res.send({err: "Invalid data"})
@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
     let password: string = req.body.password;
     try {
         let user = await login(userName, password);
-        let token = jwt.sign({_id: user._id, password: password}, settings.secret, {expiresIn: 3600 * 24 * 7});
+        let token = jwt.sign({_id: user._id}, settings.secret, {expiresIn: 3600 * 24 * 7});
         res.send({...user, userID: user._id, token: token})
     } catch (err) {
         console.log(err);

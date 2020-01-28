@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
+import 'package:message_mobile/pages/chat/chatpage.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:message_mobile/pages/login/views/errorDialog.dart';
+import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 /// Friend Detail Page where user can see the user
@@ -76,8 +78,15 @@ class FriendDetailPage extends StatelessWidget {
               ? Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RaisedButton(
-                    onPressed: () {
-                      //TODO: Add start chatting
+                    onPressed: () async {
+                      await model.createNewChatroom(friend);
+                      pushTo(
+                        context,
+                        desktopView:
+                            ChatPage(friend: friend, owner: model.currentUser),
+                        mobileView:
+                            ChatPage(friend: friend, owner: model.currentUser),
+                      );
                     },
                     child: Text("Start Chatting"),
                   ),

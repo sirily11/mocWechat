@@ -1,171 +1,44 @@
 import 'dart:io';
-
+import 'package:path/path.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/objects.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final doc = r'[{"insert":"Zefyr"},{"insert":"\n","attributes":{"heading": 3}}]';
-
 class ChatModel with ChangeNotifier {
+  final String dbPath = 'chatroomDB';
+  DatabaseFactory dbFactory = databaseFactoryIo;
   Dio networkProvider;
+  Database db;
 
   String websocketURL;
   String httpURL;
-  static User testFriend = User(
-    userName: "test friend",
-    sex: "male",
-    friends: [],
-    userId: "cdef",
-    password: "a",
-    dateOfBirth: DateTime.now(),
-    lastMessage: Message(messageBody: "Hello"),
-    avatar:
-        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-  );
-
-  static User testFriend2 = User(
-    userName: "test friend 2",
-    sex: "male",
-    userId: "cdef",
-    password: "a",
-    friends: [],
-    dateOfBirth: DateTime.now(),
-    lastMessage: Message(messageBody: "Hello"),
-    avatar:
-        "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-  );
-
-  static User testOwner = User(
-      dateOfBirth: DateTime.now(),
-      userName: "Owner",
-      userId: "abcd",
-      sex: "male",
-      password: "a",
-      lastMessage: Message(messageBody: "Hello"),
-      friends: [testFriend],
-      avatar:
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg");
-
   User currentUser;
   List<Feed> feeds = [];
-  // List<Feed> feeds = [
-  //   Feed(
-  //       id: "1",
-  //       content: doc,
-  //       publishDate: DateTime.now(),
-  //       likes: [],
-  //       user: testFriend,
-  //       comments: [
-  //         Comment(
-  //           content: "Dark Willow So Cute",
-  //           isReply: false,
-  //           user: testFriend,
-  //           replayTo: null,
-  //           postedTime: DateTime.now(),
-  //         ),
-  //         Comment(
-  //           content: "I agree",
-  //           isReply: true,
-  //           user: testFriend2,
-  //           replayTo: testFriend,
-  //           postedTime: DateTime.now(),
-  //         )
-  //       ],
-  //       images: [
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
-  //       ]),
-  //   Feed(
-  //       id: "2",
-  //       content: doc,
-  //       publishDate: DateTime.now(),
-  //       likes: [],
-  //       user: testFriend,
-  //       comments: [],
-  //       images: [
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg"
-  //       ])
-  // ];
+  List<User> chatrooms = [];
+  // List<User> chatrooms = [testFriend, testFriend2];
+
+  List<Message> messages = [];
 
   ChatModel({Dio dio}) {
     // this.currentUser = testOwner;
     this.networkProvider = dio ?? Dio();
     this.init();
   }
-  List<User> chatrooms = [];
-  // List<User> chatrooms = [testFriend, testFriend2];
 
-  List<Message> messages = [];
-  // List<Message> messages = [
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testFriend.userId,
-  //     receiver: testOwner.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testOwner.userId,
-  //     receiver: testFriend.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testFriend.userId,
-  //     receiver: testOwner.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testOwner.userId,
-  //     receiver: testFriend.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testFriend.userId,
-  //     receiver: testOwner.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testOwner.userId,
-  //     receiver: testFriend.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testFriend.userId,
-  //     receiver: testOwner.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testOwner.userId,
-  //     receiver: testFriend.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testFriend.userId,
-  //     receiver: testOwner.userId,
-  //   ),
-  //   Message(
-  //     messageBody: "abcde",
-  //     sender: testOwner.userId,
-  //     receiver: testFriend.userId,
-  //   ),
-  //   Message(
-  //     messageBody:
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-  //     sender: testFriend.userId,
-  //     receiver: testOwner.userId,
-  //     type: MessageType.image,
-  //   ),
-  //   Message(
-  //     messageBody:
-  //         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg",
-  //     sender: testOwner.userId,
-  //     receiver: testFriend.userId,
-  //     type: MessageType.image,
-  //   )
-  // ];
+  Future<void> init() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    this.websocketURL = prefs.get("websocket");
+    this.httpURL = prefs.get("http");
+    // =============Database==========================
+    var dir = await getApplicationDocumentsDirectory();
+    await dir.create(recursive: true);
+    var p = join(dir.path, dbPath);
+    this.db = await dbFactory.openDatabase(p);
+  }
 
   /// Call this function after successfully logined
   /// Such as sign up, and login functions have been called
@@ -174,6 +47,31 @@ class ChatModel with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString("token", response.data['token']);
     this.currentUser = User.fromJson(response.data);
+    //=============== Database =====================
+    final finder = Finder(sortOrders: [SortOrder("userName")]);
+    var store = intMapStoreFactory.store();
+
+    final snapshots = await store.find(db, finder: finder);
+    this.chatrooms = snapshots.map((s) => User.fromJson(s.value)).toList();
+  }
+
+  Future createNewChatroom(User withUser) async {
+    var finder = Finder(filter: Filter.equals("userID", withUser.userId));
+    var store = intMapStoreFactory.store();
+    var record = await store.find(db, finder: finder);
+    if (record.isEmpty) {
+      var key = await store.add(db, withUser.toJson());
+    }
+  }
+
+  Future getChatroomMessages(User chatroom) async {}
+
+  Future deleteChatroom(User chatroom) async {
+    var finder = Finder(filter: Filter.equals("userID", chatroom.userId));
+    var store = intMapStoreFactory.store();
+    var record = await store.delete(db, finder: finder);
+    this.chatrooms.removeWhere((c) => c.userId == chatroom.userId);
+    notifyListeners();
   }
 
   /// Search friend by their [userName]
@@ -206,7 +104,6 @@ class ChatModel with ChangeNotifier {
   }
 
   Future sendMessage(Message message) async {
-    await Future.delayed(Duration(milliseconds: 30));
     this.messages.add(message);
     if (message.type == MessageType.image) {
       message.hasUploaded = false;
@@ -422,12 +319,6 @@ class ChatModel with ChangeNotifier {
 
     await this.networkProvider.get("$httpURL/");
     return;
-  }
-
-  Future<void> init() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    this.websocketURL = prefs.get("websocket");
-    this.httpURL = prefs.get("http");
   }
 
   Future setAvatar(File uploadFile) async {

@@ -109,7 +109,8 @@ export async function addUser(user: User, debug = false): Promise<string> {
                 }
             } else {
                 console.log("document inserted");
-                resolve(res.insertedId.toHexString())
+                // @ts-ignore
+                resolve(res.insertedId)
             }
             db.close()
         })
@@ -359,9 +360,8 @@ export async function getAllFeed(user: User, begin: number): Promise<Feed[]> {
     let dbo = db.db(settings.databaseName);
     try {
         let u = await dbo.collection(settings.userCollectionName).findOne({_id: new ObjectId(user._id)});
-        let friends: [] = u?.friends ?? [];
+        let friends: [] = u.friends ? u.friends: [];
         let friendsObjs = friends.map((f) => new ObjectId(f));
-        console.log("People", [new ObjectId(user._id), ...friendsObjs]);
         return await dbo.collection<Feed>(settings.feedCollectionName)
             .aggregate([
                 {
@@ -559,8 +559,8 @@ export async function uploadAvatar(imagePath: string, user: User): Promise<void>
         if (prevFile) {
             if (prevFile.avatar) {
                 let oldPath = path.join(__dirname, 'routes/uploads', path.basename(prevFile.avatar));
-                console.log("old", oldPath);
-                fs.unlink(oldPath, (err) => console.log(err));
+                console.log("Remove path", oldPath);
+                fs.unlink(oldPath, (err) => console.log("delete error", err));
             }
         }
         await dbo.collection(settings.userCollectionName).updateOne({_id: new ObjectId(user._id)}, {$set: {'avatar': imagePath}});

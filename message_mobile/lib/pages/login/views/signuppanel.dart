@@ -23,6 +23,7 @@ class SignUpPanel extends StatelessWidget {
     return JSONSchemaForm(
       schemaName: "Sign Up",
       schema: getSchema(LoginPageSelection.signUp),
+      values: {"sex": "male"},
       onSubmit: (value) async {
         try {
           pr.show();

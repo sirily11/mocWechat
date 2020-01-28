@@ -51,7 +51,6 @@ class User {
         "userID": userId == null ? null : userId,
         "userName": userName == null ? null : userName,
         "avatar": avatar,
-        "lastMessage": lastMessage
       };
 }
 

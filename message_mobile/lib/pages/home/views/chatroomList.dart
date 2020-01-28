@@ -39,6 +39,9 @@ class ChatroomListRow extends StatelessWidget {
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
         IconSlideAction(
+          onTap: () async{
+            await model.deleteChatroom(chatroom);
+          },
           color: Colors.red,
           caption: "Delete",
           icon: Icons.delete,
@@ -64,7 +67,7 @@ class ChatroomListRow extends StatelessWidget {
         title: Text(
           chatroom.userName,
         ),
-        subtitle: Text(chatroom.lastMessage.messageBody),
+        subtitle: Text(chatroom?.lastMessage?.messageBody ?? ""),
         trailing: Icon(Icons.more_horiz),
       ),
     );
