@@ -20,6 +20,7 @@ import {Comment, Feed} from "../feed/feedObj";
 import {ObjectId} from 'mongodb';
 import {UploadedFile} from "express-fileupload";
 import * as path from "path";
+import * as fs from "fs";
 
 export const router = express.Router();
 router.use(express.json());
@@ -206,7 +207,9 @@ router.post("/upload/avatar", jwtMW, async (req, res) => {
             //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
             // @ts-ignore
             let file: UploadedFile = req.files.avatar;
+            // @ts-ignore
             let p = path.join(__dirname, 'uploads', file.name);
+            // @ts-ignore
             let dbPath = path.join('static', file.name);
             // @ts-ignore
             await uploadAvatar(dbPath, req.user);

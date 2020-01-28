@@ -4,6 +4,9 @@ import * as bcrypt from "bcrypt"
 import {User} from './userObj';
 import {settings} from "./settings/settings";
 import {Feed, Comment} from "./feed/feedObj";
+import set = Reflect.set;
+import * as fs from "fs";
+import * as path from "path";
 
 /**
  * Get mongodb client
@@ -552,7 +555,16 @@ export async function uploadAvatar(imagePath: string, user: User): Promise<void>
     let db = await getClient();
     let dbo = db.db(settings.databaseName);
     try {
+        let prevFile = await dbo.collection<User>(settings.userCollectionName).findOne({_id: new ObjectId(user._id)});
+        if (prevFile) {
+            if (prevFile.avatar) {
+                let oldPath = path.join(__dirname, 'routes/uploads', path.basename(prevFile.avatar));
+                console.log("old", oldPath);
+                fs.unlink(oldPath, (err) => console.log(err));
+            }
+        }
         await dbo.collection(settings.userCollectionName).updateOne({_id: new ObjectId(user._id)}, {$set: {'avatar': imagePath}});
+        console.log("Done updated", imagePath)
     } catch (e) {
         console.log(e);
     }

@@ -433,8 +433,13 @@ class ChatModel with ChangeNotifier {
   Future setAvatar(File uploadFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
-    var data = FormData.fromMap(
-        {"avatar": await MultipartFile.fromFile(uploadFile.path)});
+    var data = FormData.fromMap({
+      "avatar": await MultipartFile.fromFile(
+        uploadFile.path,
+        filename:
+            "${currentUser.userId}-${DateTime.now().toIso8601String()}.jpg",
+      )
+    });
 
     Response response = await this.networkProvider.post(
           "$httpURL/upload/avatar",
