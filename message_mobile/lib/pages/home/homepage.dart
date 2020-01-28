@@ -1,6 +1,7 @@
 import 'package:backdrop_widget/backdrop.dart';
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/homePageModel.dart';
 import 'package:message_mobile/pages/feed/editPage.dart';
 import 'package:message_mobile/pages/feed/feedPage.dart';
@@ -33,6 +34,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     HomePageModel model = Provider.of(context);
+    ChatModel chatModel = Provider.of(context);
     return Stack(
       children: <Widget>[
         MasterDetailContainer(
@@ -51,7 +53,8 @@ class HomePage extends StatelessWidget {
                     )
                   : Container(),
               IconButton(
-                onPressed: () {
+                onPressed: () async {
+                  await chatModel.signOut();
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(

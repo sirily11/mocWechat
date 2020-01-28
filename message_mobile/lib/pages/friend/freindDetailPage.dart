@@ -20,9 +20,16 @@ class FriendDetailPage extends StatelessWidget {
 
   FriendDetailPage({@required this.friend, @required this.self});
 
+  bool getIsFriend() {
+    return self.friends
+            .firstWhere((f) => f.userId == friend.userId, orElse: () => null) !=
+        null;
+  }
+
   @override
   Widget build(BuildContext context) {
     ChatModel model = Provider.of(context);
+    bool isFriend = getIsFriend();
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(),
@@ -45,7 +52,7 @@ class FriendDetailPage extends StatelessWidget {
                   .copyWith(fontSize: 30),
             ),
           ),
-          self.friends.contains(friend)
+          isFriend
               ? Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RaisedButton(
@@ -74,7 +81,7 @@ class FriendDetailPage extends StatelessWidget {
                     child: Text("Add Friend"),
                   ),
                 ),
-          self.friends.contains(friend)
+          isFriend
               ? Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: RaisedButton(

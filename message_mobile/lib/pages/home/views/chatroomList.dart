@@ -5,6 +5,7 @@ import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/chatpage.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
+import 'package:message_mobile/pages/login/views/errorDialog.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_container.dart';
 import 'package:message_mobile/pages/master-detail/master_detail_route.dart';
 import 'package:message_mobile/utils/utils.dart';
@@ -39,8 +40,18 @@ class ChatroomListRow extends StatelessWidget {
       actionPane: SlidableDrawerActionPane(),
       secondaryActions: <Widget>[
         IconSlideAction(
-          onTap: () async{
-            await model.deleteChatroom(chatroom);
+          onTap: () async {
+            try {
+              await model.deleteChatroom(chatroom);
+            } catch (err) {
+              showDialog(
+                context: context,
+                builder: (c) => ErrorDialog(
+                  content: err,
+                  title: "Delete Chatroom error",
+                ),
+              );
+            }
           },
           color: Colors.red,
           caption: "Delete",
@@ -48,7 +59,8 @@ class ChatroomListRow extends StatelessWidget {
         )
       ],
       child: ListTile(
-        onTap: () {
+        onTap: () async{
+          
           pushTo(
             context,
             mobileView: ChatPage(

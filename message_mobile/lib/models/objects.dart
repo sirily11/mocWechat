@@ -60,7 +60,7 @@ class Message {
   String receiverName;
   String sender;
   DateTime time;
-  MessageType type = MessageType.text;
+  MessageType type;
 
   /// Only use this value for image, video
   bool hasUploaded = true;
@@ -73,7 +73,7 @@ class Message {
     this.receiverName,
     this.sender,
     this.time,
-    this.type,
+    this.type = MessageType.text,
     this.uploadFile,
   });
 

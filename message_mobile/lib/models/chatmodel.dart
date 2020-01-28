@@ -9,10 +9,13 @@ import 'package:sembast/sembast_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatModel with ChangeNotifier {
-  final String dbPath = 'chatroomDB';
+  final String chatroomDBPath = 'chatroomDB';
+  final String messageDBPath = 'messageDB';
+
   DatabaseFactory dbFactory = databaseFactoryIo;
   Dio networkProvider;
-  Database db;
+  Database chatroomDB;
+  Database messageDB;
 
   String websocketURL;
   String httpURL;
@@ -36,8 +39,33 @@ class ChatModel with ChangeNotifier {
     // =============Database==========================
     var dir = await getApplicationDocumentsDirectory();
     await dir.create(recursive: true);
-    var p = join(dir.path, dbPath);
-    this.db = await dbFactory.openDatabase(p);
+    var p = join(dir.path, chatroomDBPath);
+    var p2 = join(dir.path, messageDBPath);
+    this.chatroomDB = await dbFactory.openDatabase(p);
+    this.messageDB = await dbFactory.openDatabase(p2);
+  }
+
+  Future getMessages(User user) async {
+    var store = intMapStoreFactory.store();
+    final finder = Finder(
+      sortOrders: [SortOrder("time")],
+      filter: Filter.or(
+        [
+          Filter.and([
+            Filter.equals("receiver", user.userId),
+            Filter.equals("sender", currentUser.userId),
+          ]),
+          Filter.and([
+            Filter.equals("sender", user.userId),
+            Filter.equals("receiver", currentUser.userId),
+          ])
+        ],
+      ),
+    );
+    final snapshots = await store.find(messageDB, finder: finder);
+    var list = snapshots.map((s) => Message.fromJson(s.value)).toList();
+    this.messages = list;
+    notifyListeners();
   }
 
   /// Call this function after successfully logined
@@ -49,27 +77,56 @@ class ChatModel with ChangeNotifier {
     this.currentUser = User.fromJson(response.data);
     //=============== Database =====================
     final finder = Finder(sortOrders: [SortOrder("userName")]);
+
     var store = intMapStoreFactory.store();
 
-    final snapshots = await store.find(db, finder: finder);
-    this.chatrooms = snapshots.map((s) => User.fromJson(s.value)).toList();
+    final snapshots = await store.find(chatroomDB, finder: finder);
+
+    for (var m in snapshots) {
+      var user = User.fromJson(m.value);
+      final messageFinder = Finder(
+        sortOrders: [SortOrder("time", false)],
+        filter: Filter.or(
+          [
+            Filter.and([
+              Filter.equals("receiver", user.userId),
+              Filter.equals("sender", currentUser.userId),
+            ]),
+            Filter.and([
+              Filter.equals("sender", user.userId),
+              Filter.equals("receiver", currentUser.userId),
+            ])
+          ],
+        ),
+      );
+      var lastMessage = await store.findFirst(messageDB, finder: messageFinder);
+      user.lastMessage =
+          lastMessage != null ? Message.fromJson(lastMessage.value) : null;
+      this.chatrooms.add(user);
+    }
+  }
+
+  Future<void> signOut() async {
+    this.messages.clear();
+    this.chatrooms.clear();
+    this.feeds.clear();
   }
 
   Future createNewChatroom(User withUser) async {
     var finder = Finder(filter: Filter.equals("userID", withUser.userId));
     var store = intMapStoreFactory.store();
-    var record = await store.find(db, finder: finder);
+    var record = await store.find(chatroomDB, finder: finder);
     if (record.isEmpty) {
-      var key = await store.add(db, withUser.toJson());
+      var key = await store.add(chatroomDB, withUser.toJson());
+      this.chatrooms.add(withUser);
+      notifyListeners();
     }
   }
-
-  Future getChatroomMessages(User chatroom) async {}
 
   Future deleteChatroom(User chatroom) async {
     var finder = Finder(filter: Filter.equals("userID", chatroom.userId));
     var store = intMapStoreFactory.store();
-    var record = await store.delete(db, finder: finder);
+    var record = await store.delete(chatroomDB, finder: finder);
     this.chatrooms.removeWhere((c) => c.userId == chatroom.userId);
     notifyListeners();
   }
@@ -104,7 +161,8 @@ class ChatModel with ChangeNotifier {
   }
 
   Future sendMessage(Message message) async {
-    this.messages.add(message);
+    var store = intMapStoreFactory.store();
+
     if (message.type == MessageType.image) {
       message.hasUploaded = false;
       while (message.uploadProgress <= 1) {
@@ -113,6 +171,12 @@ class ChatModel with ChangeNotifier {
         notifyListeners();
       }
     }
+    // Store message into local database
+    await store.add(this.messageDB, message.toJson());
+    this.messages.add(message);
+    var chatroom =
+        this.chatrooms.firstWhere((c) => c.userId == message.receiver);
+    chatroom.lastMessage = message;
     notifyListeners();
   }
 
