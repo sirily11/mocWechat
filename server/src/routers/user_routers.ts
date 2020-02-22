@@ -3,11 +3,7 @@ import * as cors from "cors";
 import * as exjwt from "express-jwt";
 import * as jwt from "jsonwebtoken";
 import { settings } from "../settings/settings";
-import set = Reflect.set;
-import { ObjectId } from 'mongodb';
-import { UploadedFile } from "express-fileupload";
-import * as path from "path";
-import * as fs from "fs";
+import * as  mongoose from "mongoose";
 
 export const router = express.Router();
 router.use(express.json());
@@ -15,6 +11,7 @@ router.use(cors());
 const jwtMW = exjwt({
     secret: settings.secret
 });
+
 
 
 router.post("/login", async (res, req, next) => {
