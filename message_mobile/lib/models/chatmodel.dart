@@ -224,7 +224,6 @@ class ChatModel with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token");
     Feed feed = Feed(
-      id: null,
       comments: [],
       content: content,
       user: currentUser,
@@ -278,8 +277,7 @@ class ChatModel with ChangeNotifier {
     if (f != null) {
       Response response = await this.networkProvider.delete(
             "$httpURL/comment",
-            queryParameters: {"feedID": feed.id},
-            data: {"_id": comment.id},
+            queryParameters: {"feedID": feed.id, "commentID": comment.id},
             options: Options(headers: {"Authorization": "Bearer $token"}),
           );
       f.comments.remove(comment);

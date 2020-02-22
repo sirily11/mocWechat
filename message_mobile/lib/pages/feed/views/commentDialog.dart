@@ -38,11 +38,12 @@ class _CommentDialogState extends State<CommentDialog> {
           child: Text("Post"),
           onPressed: () async {
             Comment replyComment = Comment(
-                content: controller.text,
-                user: model.currentUser,
-                postedTime: DateTime.now(),
-                isReply: false,
-                replyTo: null);
+              content: controller.text,
+              user: model.currentUser,
+              postedTime: DateTime.now(),
+              isReply: false,
+              replyTo: null,
+            );
             if (widget.comment != null) {
               replyComment.isReply = true;
               replyComment.replyTo = widget.comment.user;

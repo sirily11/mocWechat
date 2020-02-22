@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/chatmodel.dart';
+import 'package:message_mobile/models/feedPageModel.dart';
 import 'package:message_mobile/models/homePageModel.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
 import 'package:message_mobile/pages/home/homepage.dart';
@@ -16,6 +17,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => ChatModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FeedPageModel(),
         ),
         ChangeNotifierProvider(
           create: (_) => SignInPageModel(),

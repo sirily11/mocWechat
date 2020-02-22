@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:message_mobile/models/chatmodel.dart';
@@ -34,7 +35,8 @@ class _MessageInputState extends State<MessageInput> {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: TextField(
+                  child: CupertinoTextField(
+                    style: Theme.of(context).primaryTextTheme.bodyText1,
                     controller: controller,
                   ),
                 ),

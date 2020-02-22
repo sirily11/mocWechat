@@ -4,19 +4,24 @@ import * as WebSocket from 'ws';
 import * as url from "url"
 import * as cors from "cors"
 import * as fileUpload from "express-fileupload";
+import { addUser, init, login, addFriend, getFriendList, searchPeople } from './user';
+import { MessageQueue, Member, Message, createNewMember } from './chat/chat';
 
-import {User} from './userObj';
-import {addUser, init, login, addFriend, getFriendList, searchPeople} from './user';
-import {MessageQueue, Member, Message, createNewMember} from './chat/chat';
-import {router} from "./routes/routes";
 import * as path from "path";
+import { feedRouter } from './routers/feed_routers';
+import { router as userRouter } from './routers/user_routers';
+import { router as commentRouter } from './routers/comment_routers';
+import * as  mongoose from 'mongoose';
+import { settings } from './settings/settings';
 
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use(fileUpload({limits: {fileSize: 50 * 1024 * 1024}}));
-app.use(router);
+app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
+app.use(feedRouter);
+app.use(commentRouter);
+app.use(userRouter);
 app.use('/static', express.static(path.join(__dirname, 'routes/uploads')));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-type,Authorization');
@@ -24,14 +29,25 @@ app.use((req, res, next) => {
 });
 app.use((err: any, req: any, res: any, next: any) => {
     if (err.name === 'UnauthorizedError') {
-        res.status(401).send({err: "Invalid token"});
+        res.status(401).send({ err: "Invalid token" });
     }
 });
+/// Database connection
+const connectWithRetry = () => {
+    return mongoose.connect(settings.url, { useNewUrlParser: true, dbName: "chatting", pass: settings.password, user: settings.userName }, (err) => {
+        if (err) {
+            console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
+            setTimeout(connectWithRetry, 5000);
+        }
+    });
+};
+
+setTimeout(connectWithRetry, 5000)
 
 //initialize a simple http server
 const server = http.createServer(app);
 //initialize the WebSocket server instance
-const wss = new WebSocket.Server({server: server, path: ""});
+const wss = new WebSocket.Server({ server: server, path: "" });
 // Message queue
 const messageQueue = new MessageQueue();
 // Members

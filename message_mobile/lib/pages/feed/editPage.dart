@@ -34,6 +34,7 @@ class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
       final content = jsonEncode(_controller.document);
       ChatModel model = Provider.of(context, listen: false);
       await model.writeFeed(content, images);
+      await Future.delayed(Duration(milliseconds: 200));
       await pr.hide();
       Navigator.pop(context);
     } catch (err) {

@@ -3,7 +3,7 @@ import * as  mongoose from "mongoose";
 import { Schema, Document } from "mongoose"
 
 
-export interface Comment extends Document {
+export interface IComment extends Document {
     content: string,
     user: IUser,
     posted_time: Date,
@@ -16,7 +16,7 @@ const commentSchema: Schema = new Schema({
     user: { type: mongoose.Types.ObjectId, ref: "User" },
     posted_time: { type: Date, required: true },
     is_reply: { type: Boolean, required: true },
-    replay_to: { type: mongoose.Types.ObjectId, ref: "User" }
+    reply_to: { type: mongoose.Types.ObjectId, ref: "User" }
 });
 
-export default mongoose.model<IUser>('Comment', commentSchema);
+export const Comment = mongoose.model<IComment>('Comment', commentSchema);

@@ -113,7 +113,7 @@ class Feed {
   Feed({
     @required this.comments,
     @required this.content,
-    @required this.id,
+    this.id,
     @required this.images,
     @required this.likes,
     @required this.publishDate,

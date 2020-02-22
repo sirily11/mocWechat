@@ -4,12 +4,14 @@ import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:message_mobile/models/chatmodel.dart';
+import 'package:message_mobile/models/feedPageModel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/imageView.dart';
 import 'package:message_mobile/pages/feed/views/commentDialog.dart';
 import 'package:message_mobile/pages/feed/views/commentList.dart';
 import 'package:message_mobile/pages/feed/views/image.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:provider/provider.dart';
 import 'package:quill_delta/quill_delta.dart';
@@ -28,6 +30,13 @@ class FeedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ChatModel model = Provider.of(context);
+    FeedPageModel feedPageModel = Provider.of(context);
+    var pr = ProgressDialog(context);
+    pr.style(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      messageTextStyle: Theme.of(context).primaryTextTheme.bodyText2,
+    );
+
     return Column(
       children: <Widget>[
         ListTile(
@@ -80,18 +89,18 @@ class FeedRow extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.comment),
               onPressed: () async {
-                showDialog(
-                  context: context,
-                  builder: (_) => CommentDialog(
-                    feed: feed,
-                  ),
-                );
+                feedPageModel.showReply = true;
+                feedPageModel.feed = feed;
+                feedPageModel.comment = null;
               },
             ),
             feed.user.userId == user.userId
                 ? IconButton(
                     onPressed: () async {
-                      model.deleteFeed(feed);
+                      pr.show();
+                      await model.deleteFeed(feed);
+                      await Future.delayed(Duration(milliseconds: 200));
+                      await pr.hide();
                     },
                     icon: Icon(Icons.delete),
                   )

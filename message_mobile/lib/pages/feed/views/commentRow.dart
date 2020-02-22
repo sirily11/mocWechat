@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/chatmodel.dart';
+import 'package:message_mobile/models/feedPageModel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/feed/views/commentDialog.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
@@ -17,13 +18,10 @@ class CommentRow extends StatelessWidget {
     ChatModel model = Provider.of(context);
     return InkWell(
       onTap: () {
-        showDialog(
-          context: context,
-          builder: (_) => CommentDialog(
-            comment: comment,
-            feed: feed,
-          ),
-        );
+        FeedPageModel feedPageModel = Provider.of(context, listen: false);
+        feedPageModel.showReply = true;
+        feedPageModel.comment = comment;
+        feedPageModel.feed = feed;
       },
       onLongPress: () {
         showBottomSheet(
