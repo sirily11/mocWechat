@@ -18,6 +18,7 @@
     "@types/express-jwt": "^0.0.42",
     "@types/jsonwebtoken": "^8.3.7",
     "@types/mongodb": "^3.1.28",
+    "@types/mongoose": "^5.7.1",
     "@types/ws": "^6.0.1",
     "bcrypt": "^3.0.6",
     "cors": "^2.8.5",
@@ -27,6 +28,7 @@
     "express-ws": "^4.0.0",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.2.7",
+    "mongoose": "^5.9.2",
     "socket.io": "^2.2.0",
     "ts-node-dev": "^1.0.0-pre.39",
     "typescript": "^3.7.2"
