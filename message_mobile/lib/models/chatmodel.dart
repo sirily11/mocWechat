@@ -45,6 +45,7 @@ class ChatModel with ChangeNotifier {
     this.messageDB = await dbFactory.openDatabase(p2);
   }
 
+  /// Get message for chat room
   Future getMessages(User user) async {
     var store = intMapStoreFactory.store();
     final finder = Finder(
@@ -76,14 +77,25 @@ class ChatModel with ChangeNotifier {
     await prefs.setString("token", response.data['token']);
     this.currentUser = User.fromJson(response.data);
     //=============== Database =====================
-    final finder = Finder(sortOrders: [SortOrder("userName")]);
+    final finder = Finder(
+      sortOrders: [SortOrder("userName")],
+    );
 
     var store = intMapStoreFactory.store();
 
     final snapshots = await store.find(chatroomDB, finder: finder);
 
     for (var m in snapshots) {
+      // get chatroom
       var user = User.fromJson(m.value);
+      if (user != null ||
+          user.friends == null ||
+          user?.friends
+                  ?.where((element) => element.userId == user.userId)
+                  ?.length ==
+              0) {
+        continue;
+      }
       final messageFinder = Finder(
         sortOrders: [SortOrder("time", false)],
         filter: Filter.or(
@@ -99,9 +111,11 @@ class ChatModel with ChangeNotifier {
           ],
         ),
       );
+      // get last message
       var lastMessage = await store.findFirst(messageDB, finder: messageFinder);
       user.lastMessage =
           lastMessage != null ? Message.fromJson(lastMessage.value) : null;
+
       this.chatrooms.add(user);
     }
   }

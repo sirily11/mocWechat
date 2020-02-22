@@ -5,6 +5,7 @@ import 'package:message_mobile/pages/chat/chatpage.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:message_mobile/pages/login/views/errorDialog.dart';
 import 'package:message_mobile/utils/utils.dart';
+import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 /// Friend Detail Page where user can see the user

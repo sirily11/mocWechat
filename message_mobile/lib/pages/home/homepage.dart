@@ -15,6 +15,7 @@ import 'package:message_mobile/pages/master-detail/master_detail_container.dart'
 import 'package:message_mobile/pages/master-detail/master_detail_route.dart';
 import 'package:message_mobile/pages/settings/settingsPage.dart';
 import 'package:message_mobile/utils/utils.dart';
+import 'package:message_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {

@@ -27,11 +27,6 @@ class DetailRoute<T> extends TransitionRoute<T> with LocalHistoryRoute<T> {
   }
 
   @override
-  void install(OverlayEntry insertionPoint) {
-    super.install(insertionPoint);
-  }
-
-  @override
   bool didPop(T result) {
     final bool returnValue = super.didPop(result);
     assert(returnValue);

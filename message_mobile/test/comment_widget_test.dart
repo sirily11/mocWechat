@@ -34,14 +34,14 @@ void main() {
         content: "Dark Willow So Cute",
         user: user1,
         isReply: false,
-        replayTo: null,
+        replyTo: user2,
         postedTime: DateTime.now(),
       );
       replyComment = Comment(
         content: "I agree",
         user: user2,
         isReply: true,
-        replayTo: user1,
+        replyTo: user1,
         postedTime: DateTime.now(),
       );
 
