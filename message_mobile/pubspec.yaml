@@ -40,6 +40,9 @@ dependencies:
   path: ^1.6.4
   cached_network_image: ^2.0.0
   photo_view: ^0.9.1
+  firebase_core: ^0.4.4
+  firebase_messaging: ^6.0.9
+  firebase_ml_vision: ^0.9.3+5
   zefyr:
     git:
       path: packages/zefyr

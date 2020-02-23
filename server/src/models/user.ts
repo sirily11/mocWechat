@@ -8,6 +8,7 @@ export interface IUser extends Document {
     dateOfBirth: Date
     sex: string
     friends: IUser[]
+    pushToken?: string
 }
 
 const userSchema: Schema = new Schema({
@@ -16,7 +17,8 @@ const userSchema: Schema = new Schema({
     password: { type: String, required: true },
     dateOfBirth: { type: String, required: true },
     sex: { type: String, required: true },
-    friends: [{ type: mongoose.Types.ObjectId, ref: "User" }]
+    friends: [{ type: mongoose.Types.ObjectId, ref: "User" }],
+    pushToken: { type: String }
 });
 
 export const User = mongoose.model<IUser>('User', userSchema);

@@ -62,6 +62,7 @@ router.post("/login", async (req, res) => {
             let match = await bcrypt.compare(data.password, user.password);
             if (match) {
                 let token = jwt.sign({ _id: user._id }, settings.secret, { expiresIn: 3600 * 24 * 7 });
+                await User.findByIdAndUpdate(user._id, { pushToken: data.pushToken }).exec()
                 res.send({ ...user.toObject(), token: token })
             }
             res.status(403).send({ errmsg: "Wrong password" })
@@ -81,6 +82,7 @@ router.post("/add/user", async (req, res) => {
         data.password = await bcrypt.hash(data.password, 10)
         let newUser = await new User({ ...data }).save()
         let token = jwt.sign({ _id: newUser._id }, settings.secret, { expiresIn: 3600 * 24 * 7 });
+        await User.findByIdAndUpdate(newUser._id, { pushToken: data.pushToken }).exec()
         res.send({ ...newUser.toObject(), token: token })
     } catch (err) {
         res.send(err)
