@@ -58,8 +58,8 @@ class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              File file =
-                  await ImagePicker.pickImage(source: ImageSource.gallery);
+              File file = await ImagePicker.pickImage(
+                  source: ImageSource.gallery, imageQuality: kImageQuality);
               if (file != null) {
                 setState(() {
                   images.add(file);

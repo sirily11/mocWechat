@@ -5,6 +5,7 @@ import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
 import 'package:message_mobile/pages/home/homepage.dart';
 import 'package:message_mobile/pages/login/views/errorDialog.dart';
+import 'package:message_mobile/pages/welcome/welcomePage.dart';
 import 'package:message_mobile/utils/utils.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +34,7 @@ class SignUpPanel extends StatelessWidget {
             context,
             CupertinoPageRoute(
               fullscreenDialog: true,
-              builder: (c) => HomePage(),
+              builder: (c) => WelcomePage(),
             ),
           );
         } catch (err) {

@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:path/path.dart' as p;
 
+const int kImageQuality = 70;
+
 class ChatModel with ChangeNotifier {
   final String chatroomDBPath = 'chatroomDB';
   final String messageDBPath = 'messageDB';

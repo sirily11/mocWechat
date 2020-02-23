@@ -15,14 +15,14 @@ class AvatarView extends StatelessWidget {
     ChatModel model = Provider.of(context);
     return CircleAvatar(
       radius: size,
-      backgroundImage: user.avatar != null
+      backgroundImage: user?.avatar != null
           ? CachedNetworkImageProvider(user.avatar.startsWith("http")
               ? user.avatar
               : "${model.httpURL}/${user.avatar}")
           : null,
-      child: user.avatar == null
+      child: user?.avatar == null
           ? Text(
-              user.userName.substring(0, 1).toUpperCase(),
+              user?.userName?.substring(0, 1)?.toUpperCase() ?? "",
               style: Theme.of(context).primaryTextTheme.bodyText2,
             )
           : null,

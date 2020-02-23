@@ -27,8 +27,8 @@ class SettingsPage extends StatelessWidget {
           ListTile(
             onTap: () async {
               try {
-                File file =
-                    await ImagePicker.pickImage(source: ImageSource.gallery);
+                File file = await ImagePicker.pickImage(
+                    source: ImageSource.gallery, imageQuality: kImageQuality);
                 if (file != null) {
                   pr.show();
                   await model.setAvatar(file);

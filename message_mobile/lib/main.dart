@@ -5,6 +5,7 @@ import 'package:message_mobile/models/homePageModel.dart';
 import 'package:message_mobile/models/signInPageModel.dart';
 import 'package:message_mobile/pages/home/homepage.dart';
 import 'package:message_mobile/pages/login/loginpage.dart';
+import 'package:message_mobile/pages/welcome/welcomePage.dart';
 import 'package:provider/provider.dart';
 
 void main() => runApp(MyApp());

@@ -7,7 +7,8 @@ export interface IMessage extends Document {
     receiverName: string,
     messageBody: string,
     time: string,
-    messageType: "text" | "image" | "audio" | "video" | "url"
+    messageType: "text" | "image" | "audio" | "video" | "url",
+    pushToken?: string
 }
 
 const messageSchema: Schema = new Schema({
@@ -16,7 +17,8 @@ const messageSchema: Schema = new Schema({
     receiverName: { type: String },
     messageBody: { type: String },
     time: { type: Date },
-    messageType: { type: String, required: true }
+    messageType: { type: String, required: true },
+    pushToken: { type: String }
 });
 
 export const Message = mongoose.model<IMessage>('Message', messageSchema);
