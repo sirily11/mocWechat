@@ -13,6 +13,7 @@ class User {
   String userName;
   Message lastMessage;
   String avatar;
+  String pushToken;
 
   User({
     @required this.dateOfBirth,
@@ -21,23 +22,26 @@ class User {
     @required this.sex,
     @required this.userId,
     @required this.userName,
+    @required this.pushToken,
     this.lastMessage,
     this.avatar,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-      dateOfBirth: json["dateOfBirth"] == null
-          ? null
-          : DateTime.parse(json["dateOfBirth"]),
-      friends: json["friends"] == null
-          ? null
-          : List<User>.from(json["friends"].map((x) => User.fromJson(x))),
-      password: json["password"] == null ? null : json["password"],
-      sex: json["sex"] == null ? null : json["sex"],
-      userId: json["userID"] == null ? json['_id'] : json["userID"],
-      userName: json["userName"] == null ? null : json["userName"],
-      lastMessage: json['lastMessage'] == null ? null : json['lastMessage'],
-      avatar: json['avatar']);
+        dateOfBirth: json["dateOfBirth"] == null
+            ? null
+            : DateTime.parse(json["dateOfBirth"]),
+        friends: json["friends"] == null
+            ? null
+            : List<User>.from(json["friends"].map((x) => User.fromJson(x))),
+        password: json["password"] == null ? null : json["password"],
+        sex: json["sex"] == null ? null : json["sex"],
+        userId: json["userID"] == null ? json['_id'] : json["userID"],
+        userName: json["userName"] == null ? null : json["userName"],
+        lastMessage: json['lastMessage'] == null ? null : json['lastMessage'],
+        avatar: json['avatar'],
+        pushToken: json['pushToken'],
+      );
 
   Map<String, dynamic> toJson() => {
         "_id": userId,
@@ -51,6 +55,7 @@ class User {
         "userID": userId == null ? null : userId,
         "userName": userName == null ? null : userName,
         "avatar": avatar,
+        'pushToken': pushToken
       };
 }
 

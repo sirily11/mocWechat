@@ -32,8 +32,6 @@ class SettingsPage extends StatelessWidget {
                 if (file != null) {
                   pr.show();
                   await model.setAvatar(file);
-                  await Future.delayed(Duration(milliseconds: 200));
-                  await pr.hide();
                 }
               } catch (err) {
                 showDialog(
@@ -43,6 +41,9 @@ class SettingsPage extends StatelessWidget {
                     title: "Update avatar error",
                   ),
                 );
+              } finally {
+                await Future.delayed(Duration(milliseconds: 200));
+                await pr.hide();
               }
             },
             leading: AvatarView(

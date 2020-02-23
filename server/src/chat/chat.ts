@@ -1,10 +1,11 @@
 import * as MongoClient from "mongodb"
 import { settings } from "../settings/settings";
 import { IMessage, Message } from '../models/message';
+import * as admin from "firebase-admin";
+import { User, IUser } from '../models/user';
 
-/**
- * IMessage object
- */
+const serviceAccount = require("./secrets/open-message-35cef-firebase-adminsdk-153vx-933e9b6c74.json");
+
 
 export class Member {
     userId: string;
@@ -12,6 +13,14 @@ export class Member {
 
     constructor(userId: string) {
         this.userId = userId;
+        try {
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+        } catch (err) {
+            console.log(err)
+        }
+
     }
 
     /**
@@ -108,13 +117,25 @@ export class MessageQueue {
     }
 
     /**
-     * Add message to database
+     * Add message to database. Also push notification
      * @param newMessage new message
      */
     async addMessage(newMessage: IMessage): Promise<boolean> {
         return new Promise(async (resolve, reject) => {
             let m = new Message({ ...newMessage })
             m = await m.save()
+
+            let user = await User.findById(newMessage.receiver).exec()
+            let userData: IUser = user?.toObject();
+            if (userData.pushToken) {
+                await admin.messaging().sendToDevice(userData.pushToken,
+                    {
+                        notification: {
+                            title: `${userData.userName}`,
+                            body: `${newMessage.messageBody}`
+                        }
+                    })
+            }
             resolve()
         })
     }

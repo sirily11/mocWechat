@@ -16,7 +16,7 @@ class AvatarView extends StatelessWidget {
     return CircleAvatar(
       radius: size,
       backgroundImage: user?.avatar != null
-          ? CachedNetworkImageProvider(user.avatar.startsWith("http")
+          ? NetworkImage(user.avatar.startsWith("http")
               ? user.avatar
               : "${model.httpURL}/${user.avatar}")
           : null,

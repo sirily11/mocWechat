@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:path/path.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class ChatModel with ChangeNotifier {
   Database chatroomDB;
   Database messageDB;
   IOWebSocketChannel channel;
+  final FirebaseMessaging firebaseMessaging = FirebaseMessaging();
 
   /// Settings string
   String websocketURL;
@@ -39,7 +41,6 @@ class ChatModel with ChangeNotifier {
   ChatModel({Dio dio}) {
     // this.currentUser = testOwner;
     this.networkProvider = dio ?? Dio();
-    this.init();
   }
 
   Future<void> init() async {
@@ -53,6 +54,12 @@ class ChatModel with ChangeNotifier {
     var p2 = join(dir.path, messageDBPath);
     this.chatroomDB = await dbFactory.openDatabase(p);
     this.messageDB = await dbFactory.openDatabase(p2);
+
+    var userData = prefs.get("currentUser");
+    if (userData != null) {
+      await onSuccessfullyLogin(Response(data: jsonDecode(userData)));
+      notifyListeners();
+    }
   }
 
   /// Get message for chat room
@@ -85,9 +92,18 @@ class ChatModel with ChangeNotifier {
     notifyListeners();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString("token", response.data['token']);
+    await prefs.setString("currentUser", jsonEncode(response.data));
     this.currentUser = User.fromJson(response.data);
     isSignedIn = true;
     connectWebsocket();
+    await firebaseMessaging.requestNotificationPermissions();
+
+    //=============== Notification =================
+
+    firebaseMessaging.configure(onMessage: (message) {
+      print(message);
+      return;
+    });
 
     //=============== Database =====================
     final finder = Finder(
@@ -149,16 +165,20 @@ class ChatModel with ChangeNotifier {
       } else {
         foundChatroom.lastMessage = message;
       }
+
+      /// Write to database
+      var store = intMapStoreFactory.store();
+      await store.add(this.messageDB, message.toJson());
       notifyListeners();
     }, onError: (err) {
       print("Connection error");
       connectWebsocket();
     }, onDone: () async {
-      // if (isSignedIn) {
-      //   await Future.delayed(Duration(seconds: 5));
-      //   print("Websocket was closed and will reconnect");
-      //   connectWebsocket();
-      // }
+      if (isSignedIn) {
+        await Future.delayed(Duration(seconds: 5));
+        print("Websocket was closed and will reconnect");
+        connectWebsocket();
+      }
       print("websocket was closed");
     });
   }
@@ -169,6 +189,9 @@ class ChatModel with ChangeNotifier {
     this.feeds.clear();
     isSignedIn = false;
     channel.sink.close();
+    currentUser = null;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove("currentUser");
   }
 
   Future createNewChatroom(User withUser, {Message message}) async {
@@ -462,8 +485,13 @@ class ChatModel with ChangeNotifier {
   Future<void> login({@required Map<String, dynamic> info}) async {
     await Future.delayed(Duration(milliseconds: 300));
     try {
-      Response response =
-          await this.networkProvider.post("$httpURL/login", data: info);
+      var token = await firebaseMessaging.getToken();
+      print("token: $token");
+      var newInfoWithToken = {...info, "pushToken": token};
+      Response response = await this.networkProvider.post(
+            "$httpURL/login",
+            data: newInfoWithToken,
+          );
       await onSuccessfullyLogin(response);
     } on DioError catch (err) {
       throw (err.response);
@@ -476,8 +504,11 @@ class ChatModel with ChangeNotifier {
   Future<void> signUp({@required Map<String, dynamic> info}) async {
     await Future.delayed(Duration(milliseconds: 300));
     try {
-      Response response =
-          await this.networkProvider.post("$httpURL/add/user", data: info);
+      var token = await firebaseMessaging.getToken();
+      var newInfoWithToken = {...info, "pushToken": token};
+      Response response = await this
+          .networkProvider
+          .post("$httpURL/add/user", data: newInfoWithToken);
 
       await onSuccessfullyLogin(response);
     } on DioError catch (err) {

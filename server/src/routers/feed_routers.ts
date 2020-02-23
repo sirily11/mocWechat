@@ -55,7 +55,12 @@ feedRouter.all("/feed", jwtMW, upload.array("images"), async (req, res) => {
             let feed = await Feed.findOneAndRemove({ _id: feedData._id, user: user._id }).exec()
             if (feed) {
                 feed.images.forEach((i) => {
-                    fs.unlinkSync(i)
+                    try {
+                        fs.unlinkSync(i)
+                    } catch{
+
+                    }
+
                 })
             }
             feed?.comments.forEach(async (c) => {
