@@ -38,7 +38,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 });
 /// Database connection
 const connectWithRetry = () => {
-    return mongoose.connect(settings.url, { useNewUrlParser: true, dbName: "chatting", pass: settings.password, user: settings.userName }, (err) => {
+    return mongoose.connect(settings.url, { useNewUrlParser: true, dbName: "chatting" }, (err) => {
         if (err) {
             console.error('Failed to connect to mongo on startup - retrying in 5 sec', err);
             setTimeout(connectWithRetry, 5000);
