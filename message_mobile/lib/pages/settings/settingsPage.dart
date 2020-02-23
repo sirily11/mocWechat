@@ -8,12 +8,19 @@ import 'package:message_mobile/models/signInPageModel.dart';
 import 'package:message_mobile/pages/friend/views/avatarView.dart';
 import 'package:message_mobile/pages/login/views/errorDialog.dart';
 import 'package:message_mobile/utils/utils.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ChatModel model = Provider.of(context);
+    var pr = ProgressDialog(context);
+    pr.style(
+      message: "Setting URL",
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      messageTextStyle: Theme.of(context).primaryTextTheme.bodyText2,
+    );
     return Container(
       child: Column(
         children: <Widget>[
@@ -23,7 +30,10 @@ class SettingsPage extends StatelessWidget {
                 File file =
                     await ImagePicker.pickImage(source: ImageSource.gallery);
                 if (file != null) {
+                  pr.show();
                   await model.setAvatar(file);
+                  await Future.delayed(Duration(milliseconds: 200));
+                  await pr.hide();
                 }
               } catch (err) {
                 showDialog(
@@ -41,7 +51,7 @@ class SettingsPage extends StatelessWidget {
             title: Text("Upload Profile Image"),
           ),
           ListTile(
-            onTap: () {
+            onTap: () async {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -53,8 +63,18 @@ class SettingsPage extends StatelessWidget {
                       schema: getSchema(LoginPageSelection.signUp),
                       values: model.currentUser.toJson(),
                       onSubmit: (v) async {
-                        await model.updateUser(v);
-                        Navigator.pop(context);
+                        try {
+                          await model.updateUser(v);
+                          Navigator.pop(context);
+                        } catch (err) {
+                          await showDialog(
+                            context: context,
+                            builder: (c) => ErrorDialog(
+                              content: err.response.data['errmsg'].toString(),
+                              title: "Update info error",
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),

@@ -7,7 +7,7 @@ import { UploadedFile, FileArray } from "express-fileupload";
 import * as path from "path";
 import * as fs from "fs";
 import * as  mongoose from "mongoose";
-import { IUser } from '../models/user';
+import { IUser, User } from '../models/user';
 import { Feed, IFeed } from '../models/feed';
 import { IComment, Comment } from '../models/comment';
 import * as multer from "multer"
@@ -40,7 +40,6 @@ feedRouter.all("/feed", jwtMW, upload.array("images"), async (req, res) => {
         //@ts-ignore
         let user: IUser = req.user
         let images: string[] = [];
-        console.log("get")
         if (req.method == "POST") {
             console.log("files", req.files)
             if (req.files) {
@@ -71,11 +70,24 @@ feedRouter.all("/feed", jwtMW, upload.array("images"), async (req, res) => {
             }
 
         } else if (req.method === "GET") {
+            let u = await User.findById(user._id).exec()
             let feeds = await Feed.find({ user: user._id }, {}, { skip: parseInt(req.query.begin), limit: 20 }).sort({ "_id": -1 }).populate(
                 {
-                    path: "comments user", select: "userName content posted_time is_reply",
-                    populate: { path: "user reply_to", select: "userName" }
+                    path: "comments user", select: "userName avatar content posted_time is_reply",
+                    populate: { path: "user reply_to", select: "userName avatar" }
                 })
+            let friends = u?.toObject().friends
+
+            for (let friend of u?.toObject()?.friends) {
+                console.log("friend", friend)
+                let f = await Feed.find({ user: friend }, {}, { skip: parseInt(req.query.begin), limit: 20 }).sort({ "_id": -1 }).populate(
+                    {
+                        path: "comments user", select: "userName avatar content posted_time is_reply",
+                        populate: { path: "user reply_to", select: "userName avatar" }
+                    })
+                feeds = [...feeds, ...f]
+                console.log("feed", f)
+            }
 
 
             res.send(feeds.map((f) => f.toObject()))
@@ -127,7 +139,20 @@ feedRouter.post("/comment", jwtMW, async (req, res) => {
     } else {
         res.status(404)
     }
+})
 
+feedRouter.delete("/comment", jwtMW, async (req, res) => {
+    //@ts-ignore
+    let user: IUser = req.user
+    let feedID = req.query.feedID
+    let commentID = req.query.commentID
+    let comment = await Comment.findByIdAndDelete(commentID).exec()
+    let feed = await Feed.findByIdAndUpdate(feedID, { $pull: { comments: commentID } }, { new: true }).exec()
+    if (feed) {
+        res.send(feed.toObject())
+    } else {
+        res.status(404)
+    }
 })
 
 

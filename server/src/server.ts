@@ -25,6 +25,8 @@ app.use(commentRouter);
 app.use(userRouter);
 app.use('/message-uploads', express.static("message-uploads"));
 app.use('/feed-uploads', express.static("feed-uploads"));
+app.use('/avatar-uploads', express.static("avatar-uploads"));
+
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-type,Authorization');
     next();

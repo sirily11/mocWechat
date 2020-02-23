@@ -97,10 +97,7 @@ class FeedRow extends StatelessWidget {
             feed.user.userId == user.userId
                 ? IconButton(
                     onPressed: () async {
-                      // pr.show();
                       await model.deleteFeed(feed);
-                      // await Future.delayed(Duration(milliseconds: 200));
-                      // await pr.hide();
                     },
                     icon: Icon(Icons.delete),
                   )

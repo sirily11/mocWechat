@@ -7,6 +7,7 @@ services:
       - ./src:/home/websocket-server/src
       - ./message-uploads:/home/websocket-server/message-uploads
       - ./feed-uploads:/home/websocket-server/feed-uploads
+      - ./avatar-uploads:/home/websocket-server/avatar-uploads
     container_name: websocket-express
     ports:
       - 80:80

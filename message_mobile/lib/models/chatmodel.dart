@@ -99,6 +99,9 @@ class ChatModel with ChangeNotifier {
     for (var m in snapshots) {
       // get chatroom
       var user = User.fromJson(m.value['with']);
+      var matchedUser = currentUser.friends.firstWhere(
+          (element) => element.userId == user.userId,
+          orElse: () => null);
 
       final messageFinder = Finder(
         sortOrders: [SortOrder("time", false)],
@@ -117,10 +120,10 @@ class ChatModel with ChangeNotifier {
       );
       // get last message
       var lastMessage = await store.findFirst(messageDB, finder: messageFinder);
-      user.lastMessage =
+      matchedUser.lastMessage =
           lastMessage != null ? Message.fromJson(lastMessage.value) : null;
 
-      this.chatrooms.add(user);
+      this.chatrooms.add(matchedUser);
     }
   }
 
@@ -149,11 +152,11 @@ class ChatModel with ChangeNotifier {
       print("Connection error");
       connectWebsocket();
     }, onDone: () async {
-      if (isSignedIn) {
-        await Future.delayed(Duration(seconds: 1));
-        print("Websocket was closed and will reconnect");
-        connectWebsocket();
-      }
+      // if (isSignedIn) {
+      //   await Future.delayed(Duration(seconds: 5));
+      //   print("Websocket was closed and will reconnect");
+      //   connectWebsocket();
+      // }
       print("websocket was closed");
     });
   }
@@ -294,12 +297,17 @@ class ChatModel with ChangeNotifier {
 
   /// Update user data
   Future updateUser(Map<String, dynamic> data) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    var user = User.fromJson(data);
-    user.userId = currentUser.userId;
-    user.avatar = currentUser.avatar;
-    user.friends = currentUser.friends;
-    this.currentUser = user;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
+    Response response = await this.networkProvider.patch(
+          "$httpURL/update/info",
+          data: data,
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+    var newUser = User.fromJson(response.data);
+    currentUser.dateOfBirth = newUser.dateOfBirth;
+    currentUser.sex = newUser.sex;
+    currentUser.userName = newUser.userName;
     notifyListeners();
   }
 
@@ -328,7 +336,6 @@ class ChatModel with ChangeNotifier {
       publishDate: DateTime.now(),
       likes: [],
     );
-
 
     var data = FormData.fromMap({
       "content": feed.content,
@@ -510,8 +517,6 @@ class ChatModel with ChangeNotifier {
     var data = FormData.fromMap({
       "avatar": await MultipartFile.fromFile(
         uploadFile.path,
-        filename:
-            "${currentUser.userId}-${DateTime.now().toIso8601String()}.jpg",
       )
     });
 
@@ -522,7 +527,7 @@ class ChatModel with ChangeNotifier {
             headers: {"Authorization": "Bearer $token"},
           ),
         );
-    this.currentUser.avatar = "$httpURL/${response.data['data']['path']}";
+    this.currentUser.avatar = "$httpURL/${response.data['path']}";
     notifyListeners();
   }
 }

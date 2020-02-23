@@ -1,4 +1,5 @@
 data
 uploads
-feed-uploads
-message-uploads
+feed-uploads/
+message-uploads/
+avatar-uploads/

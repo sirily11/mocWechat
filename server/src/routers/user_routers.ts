@@ -5,6 +5,7 @@ import * as jwt from "jsonwebtoken";
 import { settings } from "../settings/settings";
 import * as  mongoose from "mongoose";
 import * as multer from "multer"
+import * as fs from "fs"
 import * as bcrypt from "bcrypt"
 import { IUser, User } from '../models/user';
 
@@ -20,7 +21,20 @@ const storage = multer.diskStorage({
     }
 })
 
+const avatarStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./avatar-uploads/")
+    },
+    filename: (req, file, cb) => {
+        //@ts-ignore
+        let user: IUser = req.user;
+        cb(null, new Date().toISOString() + "-avatar-" + user._id + file.originalname)
+    }
+})
+
 const upload = multer({ storage: storage })
+const avatarUpload = multer({ storage: avatarStorage })
+
 router.use(express.json());
 router.use(cors());
 const jwtMW = exjwt({
@@ -40,7 +54,7 @@ router.post("/login", async (req, res) => {
             {
                 path: "friends", select: "userName dateOfBirth friends sex avatar", populate: {
                     path: "friends",
-                    select: "userName"
+                    select: "userName avatar"
                 }
             }).exec()
 
@@ -100,9 +114,18 @@ router.post("/add/friend", jwtMW, async (req, res) => {
 //     }
 // })
 
-router.post("/upload/avatar", jwtMW, upload.single('avatar'), async (req, res) => {
-
+router.post("/upload/avatar", jwtMW, avatarUpload.single('avatar'), async (req, res) => {
+    // @ts-ignore
+    let u: IUser = req.user
+    let oldUser = await User.findById(u._id).exec()
+    if (oldUser && oldUser.toObject().avatar) {
+        fs.unlinkSync(oldUser.toObject().avatar)
+    }
+    let user = await User.findOneAndUpdate({ _id: u._id }, { avatar: req.file.path }).exec()
+    res.send({ "path": req.file.path })
 })
+
+
 
 router.post("/upload/messageImage", jwtMW, upload.single('messageImage'),
     async (req, res) => {
@@ -112,8 +135,27 @@ router.post("/upload/messageImage", jwtMW, upload.single('messageImage'),
         res.send({ "path": req.file.path })
     })
 
-router.patch("/update/info", jwtMW, (req, res) => {
+router.patch("/update/info", jwtMW, async (req, res) => {
+    try {
+        // @ts-ignore
+        let u: IUser = req.user
+        let userData: IUser = req.body
 
+        let user = await User.findOneAndUpdate(
+            { _id: u._id },
+            { userName: userData.userName, sex: userData.sex, dateOfBirth: userData.dateOfBirth },
+            { new: true }
+        ).populate(
+            {
+                path: "friends", select: "userName dateOfBirth friends sex avatar", populate: {
+                    path: "friends",
+                    select: "userName"
+                }
+            }).exec()
+        res.send(user?.toObject())
+    } catch (err) {
+        res.status(500).send(err)
+    }
 });
 
 router.get("/search/user", async (req, res) => {
