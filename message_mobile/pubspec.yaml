@@ -38,6 +38,7 @@ dependencies:
   path_provider: ^1.5.1
   path_provider_macos: ^0.0.2+1
   path: ^1.6.4
+  cached_network_image: ^2.0.0
   photo_view: ^0.9.1
   zefyr:
     git:

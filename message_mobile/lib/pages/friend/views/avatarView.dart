@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
@@ -15,7 +16,7 @@ class AvatarView extends StatelessWidget {
     return CircleAvatar(
       radius: size,
       backgroundImage: user.avatar != null
-          ? NetworkImage(user.avatar.startsWith("http")
+          ? CachedNetworkImageProvider(user.avatar.startsWith("http")
               ? user.avatar
               : "${model.httpURL}/${user.avatar}")
           : null,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -70,7 +71,9 @@ class FeedRow extends StatelessWidget {
                   ),
                 );
               },
-              child: Image.network("${model.httpURL}/${feed.images[index]}"),
+              child: CachedNetworkImage(
+                imageUrl: "${model.httpURL}/${feed.images[index]}",
+              ),
             ),
           ),
         ),
