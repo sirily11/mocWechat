@@ -11,9 +11,6 @@ services:
     container_name: websocket-express
     ports:
       - 80:80
-    depends_on:
-      - mongo
-
   mongo:
     image: mongo
     restart: always
