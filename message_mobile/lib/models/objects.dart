@@ -79,7 +79,7 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     MessageType _messageType = MessageType.values.firstWhere(
-        (e) => e.toString() == "MessageType.${json['messageType']}",
+        (e) => e.toString() == "${json['messageType']}",
         orElse: () => MessageType.text);
     return Message(
       messageBody: json["messageBody"],
@@ -145,7 +145,8 @@ class Feed {
   Map<String, dynamic> toJson() => {
         "_id": id,
         "content": content,
-        "images": List<dynamic>.from(images.map((x) => x)),
+        // "images":
+        //     images != null ? List<dynamic>.from(images.map((x) => x)) : [],
         "publish_date": publishDate.toIso8601String(),
       };
 }

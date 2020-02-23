@@ -9,6 +9,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
+import 'package:path/path.dart' as p;
 
 class ChatModel with ChangeNotifier {
   final String chatroomDBPath = 'chatroomDB';
@@ -127,7 +128,6 @@ class ChatModel with ChangeNotifier {
     channel = IOWebSocketChannel.connect(
         "$websocketURL?userID=${currentUser.userId}");
     channel.stream.listen((event) async {
-      print(event);
       var message = Message.fromJson(JsonDecoder().convert(event));
       messages.add(message);
       // If chatroom doesn't exist
@@ -248,6 +248,7 @@ class ChatModel with ChangeNotifier {
 
     /// Send image
     if (message.type == MessageType.image) {
+      message.hasUploaded = false;
       this.messages.add(message);
       notifyListeners();
       message.hasUploaded = false;
@@ -268,11 +269,27 @@ class ChatModel with ChangeNotifier {
   /// This will replace [messageBody] to real url
   /// after image has uploaded
   Future uploadMessageImage(Message message) async {
-    while (message.uploadProgress <= 1) {
-      await Future.delayed(Duration(milliseconds: 100));
-      message.uploadProgress += 0.05;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token");
+    var data = FormData.fromMap({
+      "messageImage": await MultipartFile.fromFile(message.uploadFile.path,
+          filename: p.basename(message.uploadFile.path))
+    });
+
+    Response response =
+        await this.networkProvider.post("$httpURL/upload/messageImage",
+            data: data,
+            options: Options(
+              headers: {"Authorization": "Bearer $token"},
+            ), onReceiveProgress: (cur, total) {
+      message.uploadProgress = cur / total;
       notifyListeners();
-    }
+    });
+
+    String uploadedPath = response.data['path'];
+    message.messageBody = uploadedPath;
+    message.hasUploaded = true;
+    notifyListeners();
   }
 
   /// Update user data
@@ -310,18 +327,27 @@ class ChatModel with ChangeNotifier {
       user: currentUser,
       publishDate: DateTime.now(),
       likes: [],
-      images: images
-          .map((i) =>
-              "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3290d49e20dbd8f02d5920f7485bd777fdb3f33_full.jpg")
-          .toList(),
     );
+
+
+    var data = FormData.fromMap({
+      "content": feed.content,
+      "publish_date": feed.toJson()['publish_date'],
+    });
+
+    for (var i in images) {
+      data.files.add(MapEntry("images", MultipartFile.fromFileSync(i.path)));
+    }
+
     Response response = await this.networkProvider.post(
           "$httpURL/feed",
-          data: feed.toJson(),
+          data: data,
           options: Options(headers: {"Authorization": "Bearer $token"}),
         );
     var nFeed = Feed.fromJson(response.data);
     feed.id = nFeed.id;
+
+    feed.images = nFeed.images;
     feeds.add(feed);
     notifyListeners();
   }

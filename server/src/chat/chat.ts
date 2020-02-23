@@ -116,12 +116,6 @@ export class MessageQueue {
             let m = new Message({ ...newMessage })
             m = await m.save()
             resolve()
-            // if (this.db) {
-            //     this.db.collection(settings.messageCollectionName).insertOne(newMessage)
-            //     resolve()
-            // } else {
-            //     reject("No database")
-            // }
         })
     }
 
@@ -154,13 +148,6 @@ export class MessageQueue {
             if (message) {
                 resolve(message);
             }
-
-            // if (this.db) {
-            // let message = await this.db.collection(settings.messageCollectionName).findOneAndDelete({ receiver: receiver });
-            //     resolve(message.value)
-            // } else {
-            //     reject("No database")
-            // }
         })
     }
 }

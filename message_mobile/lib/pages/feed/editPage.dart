@@ -104,9 +104,10 @@ class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
                               i,
                               width: 100,
                               height: 100,
+                              fit: BoxFit.cover,
                             ),
                             Positioned(
-                              top: 10,
+                              top: 0,
                               right: 0,
                               child: IconButton(
                                 onPressed: () {

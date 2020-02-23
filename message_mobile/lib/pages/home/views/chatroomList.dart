@@ -33,6 +33,17 @@ class ChatroomListRow extends StatelessWidget {
 
   ChatroomListRow({this.chatroom});
 
+  String _renderLastMessageText(Message message) {
+    if (message == null) {
+      return "";
+    }
+    if (message.type == MessageType.image) {
+      return "[image]";
+    } else {
+      return message.messageBody ?? "";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ChatModel model = Provider.of(context);
@@ -59,8 +70,7 @@ class ChatroomListRow extends StatelessWidget {
         )
       ],
       child: ListTile(
-        onTap: () async{
-          
+        onTap: () async {
           pushTo(
             context,
             mobileView: ChatPage(
@@ -79,7 +89,7 @@ class ChatroomListRow extends StatelessWidget {
         title: Text(
           chatroom.userName,
         ),
-        subtitle: Text(chatroom?.lastMessage?.messageBody ?? ""),
+        subtitle: Text(_renderLastMessageText(chatroom?.lastMessage)),
         trailing: Icon(Icons.more_horiz),
       ),
     );

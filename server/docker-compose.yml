@@ -5,6 +5,8 @@ services:
     build: .
     volumes:
       - ./src:/home/websocket-server/src
+      - ./message-uploads:/home/websocket-server/message-uploads
+      - ./feed-uploads:/home/websocket-server/feed-uploads
     container_name: websocket-express
     ports:
       - 80:80

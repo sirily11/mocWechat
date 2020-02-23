@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:message_mobile/models/chatmodel.dart';
 import 'package:message_mobile/models/objects.dart';
 import 'package:message_mobile/pages/chat/views/imageView.dart';
+import 'package:provider/provider.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -37,6 +39,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget buildImageBubble(BuildContext context) {
+    ChatModel chatModel = Provider.of(context);
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Stack(
@@ -48,13 +51,13 @@ class MessageBubble extends StatelessWidget {
                       CupertinoPageRoute(
                         fullscreenDialog: true,
                         builder: (c) => ImageView(
-                          url: message.messageBody,
+                          url: "${chatModel.httpURL}/${message.messageBody}",
                         ),
                       ),
                     );
                   },
                   child: Image.network(
-                    message.messageBody,
+                    "${chatModel.httpURL}/${message.messageBody}",
                     height: imageSize,
                     width: imageSize,
                   ),
@@ -66,7 +69,7 @@ class MessageBubble extends StatelessWidget {
                 ),
           AnimatedSwitcher(
             duration: Duration(milliseconds: 100),
-            child: message.uploadProgress < 1
+            child: message.uploadProgress < 1 && !message.hasUploaded
                 ? Container(
                     height: imageSize,
                     width: imageSize,

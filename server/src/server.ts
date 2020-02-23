@@ -19,11 +19,12 @@ import { IMessage } from './models/message';
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
+// app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
 app.use(feedRouter);
 app.use(commentRouter);
 app.use(userRouter);
-app.use('/static', express.static(path.join(__dirname, 'routes/uploads')));
+app.use('/message-uploads', express.static("message-uploads"));
+app.use('/feed-uploads', express.static("feed-uploads"));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-type,Authorization');
     next();

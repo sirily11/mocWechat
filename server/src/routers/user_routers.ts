@@ -4,10 +4,23 @@ import * as exjwt from "express-jwt";
 import * as jwt from "jsonwebtoken";
 import { settings } from "../settings/settings";
 import * as  mongoose from "mongoose";
+import * as multer from "multer"
 import * as bcrypt from "bcrypt"
 import { IUser, User } from '../models/user';
 
 export const router = express.Router();
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./message-uploads/")
+    },
+    filename: (req, file, cb) => {
+        //@ts-ignore
+        let user: IUser = req.user;
+        cb(null, new Date().toISOString() + "-message-" + user._id + file.originalname)
+    }
+})
+
+const upload = multer({ storage: storage })
 router.use(express.json());
 router.use(cors());
 const jwtMW = exjwt({
@@ -87,9 +100,17 @@ router.post("/add/friend", jwtMW, async (req, res) => {
 //     }
 // })
 
-router.post("/upload/avatar", jwtMW, async (req, res) => {
+router.post("/upload/avatar", jwtMW, upload.single('avatar'), async (req, res) => {
 
 })
+
+router.post("/upload/messageImage", jwtMW, upload.single('messageImage'),
+    async (req, res) => {
+        // @ts-ignore
+        let u: IUser = req.user
+        console.log(req.file)
+        res.send({ "path": req.file.path })
+    })
 
 router.patch("/update/info", jwtMW, (req, res) => {
 

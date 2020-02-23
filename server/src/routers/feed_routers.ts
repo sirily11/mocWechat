@@ -3,13 +3,27 @@ import * as cors from "cors";
 import * as exjwt from "express-jwt";
 import * as jwt from "jsonwebtoken";
 import { settings } from "../settings/settings";
-import { UploadedFile } from "express-fileupload";
+import { UploadedFile, FileArray } from "express-fileupload";
 import * as path from "path";
 import * as fs from "fs";
 import * as  mongoose from "mongoose";
 import { IUser } from '../models/user';
 import { Feed, IFeed } from '../models/feed';
 import { IComment, Comment } from '../models/comment';
+import * as multer from "multer"
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./feed-uploads/")
+    },
+    filename: (req, file, cb) => {
+        //@ts-ignore
+        let user: IUser = req.user;
+        cb(null, new Date().toISOString() + "-feed-" + user._id + file.originalname)
+    }
+})
+
+const upload = multer({ storage: storage })
 
 export const feedRouter = express.Router();
 feedRouter.use(express.json());
@@ -20,19 +34,31 @@ const jwtMW = exjwt({
 
 
 
-feedRouter.all("/feed", jwtMW, async (req, res) => {
+feedRouter.all("/feed", jwtMW, upload.array("images"), async (req, res) => {
     try {
         let feedData: IFeed = req.body
         //@ts-ignore
         let user: IUser = req.user
+        let images: string[] = [];
+        console.log("get")
         if (req.method == "POST") {
-            delete feedData._id;
-            let feed = new Feed({ user: user._id, ...feedData })
+            console.log("files", req.files)
+            if (req.files) {
+                // @ts-ignore
+                images = req.files.map((f) => f.path)
+            }
+            console.log("images", images)
+            let feed = new Feed({ user: user._id, ...feedData, images: images })
             await feed.save()
             res.send(feed.toObject())
+
         } else if (req.method == "DELETE") {
             let feed = await Feed.findOneAndRemove({ _id: feedData._id, user: user._id }).exec()
-
+            if (feed) {
+                feed.images.forEach((i) => {
+                    fs.unlinkSync(i)
+                })
+            }
             feed?.comments.forEach(async (c) => {
                 console.log(c)
                 await Comment.findByIdAndDelete(c._id).exec()
@@ -104,21 +130,7 @@ feedRouter.post("/comment", jwtMW, async (req, res) => {
 
 })
 
-feedRouter.delete("/comment", jwtMW, async (req, res) => {
-    //@ts-ignore
-    let user: IUser = req.user
-    let commentID = req.query.commentID
-    let feedID = req.query.feedID
 
-    let comment = Comment.findByIdAndDelete(commentID)
-    let feed = await Feed.findByIdAndUpdate(feedID, { $pull: { comments: commentID } }, { new: true }).populate("user", "userName").exec()
-    if (feed) {
-        res.send(feed?.toObject())
-    } else {
-        res.status(404)
-    }
-
-})
 
 
 feedRouter.post("/upload/feed-image", jwtMW, async (req, res) => {

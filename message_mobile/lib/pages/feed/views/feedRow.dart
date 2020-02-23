@@ -65,12 +65,12 @@ class FeedRow extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (c) => ImageView(
-                      url: feed.images[index],
+                      url: "${model.httpURL}/${feed.images[index]}",
                     ),
                   ),
                 );
               },
-              child: Image.network(feed.images[index]),
+              child: Image.network("${model.httpURL}/${feed.images[index]}"),
             ),
           ),
         ),
@@ -97,10 +97,10 @@ class FeedRow extends StatelessWidget {
             feed.user.userId == user.userId
                 ? IconButton(
                     onPressed: () async {
-                      pr.show();
+                      // pr.show();
                       await model.deleteFeed(feed);
-                      await Future.delayed(Duration(milliseconds: 200));
-                      await pr.hide();
+                      // await Future.delayed(Duration(milliseconds: 200));
+                      // await pr.hide();
                     },
                     icon: Icon(Icons.delete),
                   )
