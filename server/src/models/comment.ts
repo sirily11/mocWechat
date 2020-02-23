@@ -5,6 +5,7 @@ import { Schema, Document } from "mongoose"
 
 export interface IComment extends Document {
     content: string,
+    label?: string,
     user: IUser,
     posted_time: Date,
     is_reply: boolean,
@@ -16,7 +17,8 @@ const commentSchema: Schema = new Schema({
     user: { type: mongoose.Types.ObjectId, ref: "User" },
     posted_time: { type: Date, required: true },
     is_reply: { type: Boolean, required: true },
-    reply_to: { type: mongoose.Types.ObjectId, ref: "User" }
+    reply_to: { type: mongoose.Types.ObjectId, ref: "User" },
+    label: { type: String }
 });
 
 export const Comment = mongoose.model<IComment>('Comment', commentSchema);
