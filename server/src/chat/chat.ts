@@ -1,19 +1,10 @@
 import * as MongoClient from "mongodb"
 import { settings } from "../settings/settings";
+import { IMessage, Message } from '../models/message';
 
 /**
- * Message object
+ * IMessage object
  */
-export interface Message {
-    sender: string,
-    receiver: string,
-    receiverName: string,
-    messageBody: string,
-    time: string,
-    type: "text" | "image" | "audio" | "video" | "url"
-}
-
-
 
 export class Member {
     userId: string;
@@ -42,7 +33,7 @@ export class Member {
      * Send message to the current client
      * @param message Message
      */
-    send(message: Message): Promise<any> {
+    send(message: IMessage): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.websocket) {
                 this.websocket.send(JSON.stringify(message))
@@ -57,31 +48,14 @@ export class Member {
 
 
 export class MessageQueue {
-    queues: Map<string, Array<Message>>
-    db: MongoClient.Db | undefined
+    queues: Map<string, Array<IMessage>>
 
     constructor() {
         this.queues = new Map()
         console.log("Waiting for mongodb container set up")
-        setTimeout(() => {
-            MongoClient.connect(settings.url, {
-                useNewUrlParser: true,
-                auth: { user: settings.userName, password: settings.password }
-            }).then((db) => {
-                this.db = db.db(settings.databaseName)
-                console.log("Server is up")
-            }).catch((err) => {
-                console.log(err)
-            })
-        }, 15000)
 
     }
 
-    async deleteAll() {
-        if (this.db) {
-            await this.db.dropDatabase()
-        }
-    }
 
     /**
      * Get if there is message in memory
@@ -107,13 +81,11 @@ export class MessageQueue {
      */
     async hasMessage(receiver: string): Promise<boolean> {
         return new Promise(async (resolve, reject) => {
-            if (this.db) {
-                let a = await this.db.collection(settings.messageCollectionName).find({ receiver: receiver }).toArray()
-                if (a.length > 0) {
-                    resolve(true)
-                } else {
-                    resolve(false)
-                }
+            let message = await Message.findOne({ receiver: receiver }).exec()
+            if (message) {
+                resolve(true)
+            } else {
+                resolve(false)
             }
         })
     }
@@ -122,7 +94,7 @@ export class MessageQueue {
      * Add message to memory's queue
      * @param newMessage new message
      */
-    async addMessageInMemory(newMessage: Message): Promise<boolean> {
+    async addMessageInMemory(newMessage: IMessage): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let messages = this.queues.get(newMessage.receiver)
             if (messages) {
@@ -139,14 +111,17 @@ export class MessageQueue {
      * Add message to database
      * @param newMessage new message
      */
-    async addMessage(newMessage: Message): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            if (this.db) {
-                this.db.collection(settings.messageCollectionName).insertOne(newMessage)
-                resolve()
-            } else {
-                reject("No database")
-            }
+    async addMessage(newMessage: IMessage): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            let m = new Message({ ...newMessage })
+            m = await m.save()
+            resolve()
+            // if (this.db) {
+            //     this.db.collection(settings.messageCollectionName).insertOne(newMessage)
+            //     resolve()
+            // } else {
+            //     reject("No database")
+            // }
         })
     }
 
@@ -154,7 +129,7 @@ export class MessageQueue {
      * Get message from memory and delete it
      * @param receiver receiver's id
      */
-    async getMessageInMemory(receiver: string): Promise<Message> {
+    async getMessageInMemory(receiver: string): Promise<IMessage> {
         return new Promise(async (resolve, reject) => {
             let messages = this.queues.get(receiver)
             if (messages) {
@@ -173,14 +148,19 @@ export class MessageQueue {
     /**
      * Get message from database and remove it from the list
      */
-    async getMessage(receiver: string): Promise<Message> {
+    async getMessage(receiver: string): Promise<IMessage> {
         return new Promise(async (resolve, reject) => {
-            if (this.db) {
-                let message = await this.db.collection(settings.messageCollectionName).findOneAndDelete({ receiver: receiver });
-                resolve(message.value)
-            } else {
-                reject("No database")
+            let message = await Message.findOneAndRemove({ receiver: receiver }).exec()
+            if (message) {
+                resolve(message);
             }
+
+            // if (this.db) {
+            // let message = await this.db.collection(settings.messageCollectionName).findOneAndDelete({ receiver: receiver });
+            //     resolve(message.value)
+            // } else {
+            //     reject("No database")
+            // }
         })
     }
 }

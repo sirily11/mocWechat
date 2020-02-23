@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:dio/dio.dart';
@@ -7,24 +8,30 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/io.dart';
 
 class ChatModel with ChangeNotifier {
   final String chatroomDBPath = 'chatroomDB';
   final String messageDBPath = 'messageDB';
 
+  /// System variable
   DatabaseFactory dbFactory = databaseFactoryIo;
   Dio networkProvider;
   Database chatroomDB;
   Database messageDB;
+  IOWebSocketChannel channel;
 
+  /// Settings string
   String websocketURL;
   String httpURL;
   User currentUser;
+
+  /// display objects
   List<Feed> feeds = [];
   List<User> chatrooms = [];
   // List<User> chatrooms = [testFriend, testFriend2];
-
   List<Message> messages = [];
+  bool isSignedIn = false;
 
   ChatModel({Dio dio}) {
     // this.currentUser = testOwner;
@@ -76,10 +83,13 @@ class ChatModel with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString("token", response.data['token']);
     this.currentUser = User.fromJson(response.data);
+    isSignedIn = true;
+    connectWebsocket();
+
     //=============== Database =====================
     final finder = Finder(
-      sortOrders: [SortOrder("userName")],
-    );
+        sortOrders: [SortOrder("userName")],
+        filter: Filter.equals("owner", currentUser.userId));
 
     var store = intMapStoreFactory.store();
 
@@ -87,15 +97,8 @@ class ChatModel with ChangeNotifier {
 
     for (var m in snapshots) {
       // get chatroom
-      var user = User.fromJson(m.value);
-      if (user != null ||
-          user.friends == null ||
-          user?.friends
-                  ?.where((element) => element.userId == user.userId)
-                  ?.length ==
-              0) {
-        continue;
-      }
+      var user = User.fromJson(m.value['with']);
+
       final messageFinder = Finder(
         sortOrders: [SortOrder("time", false)],
         filter: Filter.or(
@@ -120,27 +123,93 @@ class ChatModel with ChangeNotifier {
     }
   }
 
+  void connectWebsocket() {
+    channel = IOWebSocketChannel.connect(
+        "$websocketURL?userID=${currentUser.userId}");
+    channel.stream.listen((event) async {
+      print(event);
+      var message = Message.fromJson(JsonDecoder().convert(event));
+      messages.add(message);
+      // If chatroom doesn't exist
+      var foundChatroom = chatrooms.firstWhere(
+          (element) => element.userId == message.sender,
+          orElse: () => null);
+      if (foundChatroom == null) {
+        var withUser = currentUser.friends.firstWhere(
+            (element) => element.userId == message.sender,
+            orElse: () => null);
+        if (withUser != null) {
+          await createNewChatroom(withUser, message: message);
+        }
+      } else {
+        foundChatroom.lastMessage = message;
+      }
+      notifyListeners();
+    }, onError: (err) {
+      print("Connection error");
+      connectWebsocket();
+    }, onDone: () async {
+      if (isSignedIn) {
+        await Future.delayed(Duration(seconds: 1));
+        print("Websocket was closed and will reconnect");
+        connectWebsocket();
+      }
+      print("websocket was closed");
+    });
+  }
+
   Future<void> signOut() async {
     this.messages.clear();
     this.chatrooms.clear();
     this.feeds.clear();
+    isSignedIn = false;
+    channel.sink.close();
   }
 
-  Future createNewChatroom(User withUser) async {
+  Future createNewChatroom(User withUser, {Message message}) async {
     var finder = Finder(filter: Filter.equals("userID", withUser.userId));
     var store = intMapStoreFactory.store();
     var record = await store.find(chatroomDB, finder: finder);
+    withUser.lastMessage = message;
     if (record.isEmpty) {
-      var key = await store.add(chatroomDB, withUser.toJson());
+      var key = await store.add(
+          chatroomDB, {"owner": currentUser.userId, "with": withUser.toJson()});
       this.chatrooms.add(withUser);
       notifyListeners();
     }
   }
 
   Future deleteChatroom(User chatroom) async {
-    var finder = Finder(filter: Filter.equals("userID", chatroom.userId));
+    var finder = Finder(
+      filter: Filter.and(
+        [
+          Filter.equals("owner", currentUser.userId),
+          Filter.equals("with.userID", chatroom.userId)
+        ],
+      ),
+    );
+
+    var messageFinder = Finder(
+      filter: Filter.or(
+        [
+          Filter.and([
+            Filter.equals("receiver", chatroom.userId),
+            Filter.equals("sender", currentUser.userId),
+          ]),
+          Filter.and([
+            Filter.equals("sender", chatroom.userId),
+            Filter.equals("receiver", currentUser.userId),
+          ])
+        ],
+      ),
+    );
+
     var store = intMapStoreFactory.store();
     var record = await store.delete(chatroomDB, finder: finder);
+    var messageRecord = await store.delete(messageDB, finder: messageFinder);
+
+    print("Delete chartroom number: $record");
+    print("Delete message number: $messageRecord");
     this.chatrooms.removeWhere((c) => c.userId == chatroom.userId);
     notifyListeners();
   }
@@ -177,21 +246,33 @@ class ChatModel with ChangeNotifier {
   Future sendMessage(Message message) async {
     var store = intMapStoreFactory.store();
 
+    /// Send image
     if (message.type == MessageType.image) {
+      this.messages.add(message);
+      notifyListeners();
       message.hasUploaded = false;
-      while (message.uploadProgress <= 1) {
-        await Future.delayed(Duration(milliseconds: 100));
-        message.uploadProgress += 0.05;
-        notifyListeners();
-      }
+      await uploadMessageImage(message);
+    } else {
+      this.messages.add(message);
     }
+    channel.sink.add(JsonEncoder().convert(message.toJson()));
     // Store message into local database
     await store.add(this.messageDB, message.toJson());
-    this.messages.add(message);
     var chatroom =
         this.chatrooms.firstWhere((c) => c.userId == message.receiver);
     chatroom.lastMessage = message;
     notifyListeners();
+  }
+
+  /// Upload [message] image to server
+  /// This will replace [messageBody] to real url
+  /// after image has uploaded
+  Future uploadMessageImage(Message message) async {
+    while (message.uploadProgress <= 1) {
+      await Future.delayed(Duration(milliseconds: 100));
+      message.uploadProgress += 0.05;
+      notifyListeners();
+    }
   }
 
   /// Update user data

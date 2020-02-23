@@ -72,6 +72,7 @@ class MessageBubble extends StatelessWidget {
                     width: imageSize,
                     child: Center(
                       child: CircularProgressIndicator(
+                        backgroundColor: Colors.red,
                         value: message.uploadProgress,
                       ),
                     ),

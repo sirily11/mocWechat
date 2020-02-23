@@ -5,7 +5,7 @@ import * as url from "url"
 import * as cors from "cors"
 import * as fileUpload from "express-fileupload";
 import { addUser, init, login, addFriend, getFriendList, searchPeople } from './user';
-import { MessageQueue, Member, Message, createNewMember } from './chat/chat';
+import { MessageQueue, Member, createNewMember } from './chat/chat';
 
 import * as path from "path";
 import { feedRouter } from './routers/feed_routers';
@@ -13,6 +13,7 @@ import { router as userRouter } from './routers/user_routers';
 import { router as commentRouter } from './routers/comment_routers';
 import * as  mongoose from 'mongoose';
 import { settings } from './settings/settings';
+import { IMessage } from './models/message';
 
 
 const app = express();
@@ -87,7 +88,8 @@ wss.on('connection', async (ws: WebSocket, req) => {
     });
 
     ws.on('message', async (msg: string) => {
-        let message: Message = JSON.parse(msg);
+        let message: IMessage = JSON.parse(msg);
+        console.log(message)
         let sent = false;
         for (let member of members) {
             if (member.userId === message.receiver) {

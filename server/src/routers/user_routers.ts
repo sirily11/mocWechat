@@ -15,11 +15,21 @@ const jwtMW = exjwt({
 });
 
 
+router.get("/", async (req, res) => {
+    res.send({ "status": "ok" })
+})
+
 
 router.post("/login", async (req, res) => {
     try {
         let data: IUser = req.body
-        let user = await User.findOne({ userName: data.userName }).populate("friends", "userName dateOfBirth friends sex avatar").exec()
+        let user = await User.findOne({ userName: data.userName }).populate(
+            {
+                path: "friends", select: "userName dateOfBirth friends sex avatar", populate: {
+                    path: "friends",
+                    select: "userName"
+                }
+            }).exec()
 
         if (user) {
             let match = await bcrypt.compare(data.password, user.password);
@@ -56,6 +66,8 @@ router.post("/add/friend", jwtMW, async (req, res) => {
         // @ts-ignore
         let u: IUser = req.user
         let friend = await User.findByIdAndUpdate(u._id, { $addToSet: { friends: req.body.friend } }, { new: true }).exec()
+        await User.findOneAndUpdate(req.body.friend, { $addToSet: { friends: u._id } }, { new: true }).exec()
+
         if (friend) {
             res.send(friend.toObject())
         }

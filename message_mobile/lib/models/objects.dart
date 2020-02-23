@@ -82,12 +82,13 @@ class Message {
         (e) => e.toString() == "MessageType.${json['messageType']}",
         orElse: () => MessageType.text);
     return Message(
-        messageBody: json["messageBody"],
-        receiver: json["receiver"],
-        receiverName: json["receiverName"],
-        sender: json["sender"],
-        time: DateTime.parse(json["time"]),
-        type: _messageType);
+      messageBody: json["messageBody"],
+      receiver: json["receiver"],
+      receiverName: json["receiverName"],
+      sender: json["sender"],
+      time: DateTime.parse(json["time"]),
+      type: _messageType,
+    );
   }
 
   Map<String, dynamic> toJson() => {

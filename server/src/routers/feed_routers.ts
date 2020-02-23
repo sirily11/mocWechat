@@ -45,7 +45,11 @@ feedRouter.all("/feed", jwtMW, async (req, res) => {
             }
 
         } else if (req.method === "GET") {
-            let feeds = await Feed.find({ user: user._id }, {}, { skip: parseInt(req.query.begin), limit: 20 }).sort({ "_id": -1 }).populate({ path: "comments user", select: "userName content posted_time is_reply", populate: { path: "user reply_to", select: "userName" } })
+            let feeds = await Feed.find({ user: user._id }, {}, { skip: parseInt(req.query.begin), limit: 20 }).sort({ "_id": -1 }).populate(
+                {
+                    path: "comments user", select: "userName content posted_time is_reply",
+                    populate: { path: "user reply_to", select: "userName" }
+                })
 
 
             res.send(feeds.map((f) => f.toObject()))
