@@ -95,7 +95,8 @@ router.post("/add/friend", jwtMW, async (req, res) => {
         // @ts-ignore
         let u: IUser = req.user
         let friend = await User.findByIdAndUpdate(u._id, { $addToSet: { friends: req.body.friend } }, { new: true }).exec()
-        await User.findOneAndUpdate(req.body.friend, { $addToSet: { friends: u._id } }, { new: true }).exec()
+
+        let addedUser = await User.findByIdAndUpdate(req.body.friend, { $addToSet: { friends: u._id } }, { new: true }).exec()
 
         if (friend) {
             res.send(friend.toObject())
@@ -121,12 +122,12 @@ router.post("/upload/avatar", jwtMW, avatarUpload.single('avatar'), async (req, 
     let u: IUser = req.user
     let oldUser = await User.findById(u._id).exec()
     if (oldUser && oldUser.toObject().avatar) {
-        try{
+        try {
             fs.unlinkSync(oldUser.toObject().avatar)
-        } catch(err){
-            
+        } catch (err) {
+
         }
-      
+
     }
     let user = await User.findOneAndUpdate({ _id: u._id }, { avatar: req.file.path }).exec()
     res.send({ "path": req.file.path })

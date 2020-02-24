@@ -5,3 +5,4 @@ message-uploads/
 avatar-uploads/
 src/settings/settings.ts
 secrets/
+dist/
