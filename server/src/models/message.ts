@@ -8,6 +8,7 @@ export interface IMessage extends Document {
     messageBody: string,
     time: string,
     messageType: "text" | "image" | "audio" | "video" | "url",
+    label?: string,
 
 }
 
@@ -18,6 +19,7 @@ const messageSchema: Schema = new Schema({
     messageBody: { type: String },
     time: { type: Date },
     messageType: { type: String, required: true },
+    label: { type: String }
 
 });
 

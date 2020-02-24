@@ -66,21 +66,22 @@ class Message {
   String sender;
   DateTime time;
   MessageType type;
+  String label;
 
   /// Only use this value for image, video
   bool hasUploaded = true;
   double uploadProgress = 0;
   File uploadFile;
 
-  Message({
-    this.messageBody,
-    this.receiver,
-    this.receiverName,
-    this.sender,
-    this.time,
-    this.type = MessageType.text,
-    this.uploadFile,
-  });
+  Message(
+      {this.messageBody,
+      this.receiver,
+      this.receiverName,
+      this.sender,
+      this.time,
+      this.type = MessageType.text,
+      this.uploadFile,
+      this.label});
 
   factory Message.fromJson(Map<String, dynamic> json) {
     MessageType _messageType = MessageType.values.firstWhere(
@@ -93,6 +94,7 @@ class Message {
       sender: json["sender"],
       time: DateTime.parse(json["time"]),
       type: _messageType,
+      label: json['label'],
     );
   }
 
@@ -103,6 +105,7 @@ class Message {
         "sender": sender,
         "time": time?.toIso8601String(),
         "messageType": type.toString(),
+        "label": label
       };
 }
 

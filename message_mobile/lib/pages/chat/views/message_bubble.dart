@@ -44,29 +44,32 @@ class MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Stack(
         children: <Widget>[
-          message.hasUploaded
-              ? GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      CupertinoPageRoute(
-                        fullscreenDialog: true,
-                        builder: (c) => ImageView(
-                          url: "${chatModel.httpURL}/${message.messageBody}",
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 300),
+            child: message.hasUploaded
+                ? GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          fullscreenDialog: true,
+                          builder: (c) => ImageView(
+                            url: "${chatModel.httpURL}/${message.messageBody}",
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: Image.network(
-                    "${chatModel.httpURL}/${message.messageBody}",
+                      );
+                    },
+                    child: Image.network(
+                      "${chatModel.httpURL}/${message.messageBody}",
+                      height: imageSize,
+                      width: imageSize,
+                    ),
+                  )
+                : Image.file(
+                    message.uploadFile,
                     height: imageSize,
                     width: imageSize,
                   ),
-                )
-              : Image.file(
-                  message.uploadFile,
-                  height: imageSize,
-                  width: imageSize,
-                ),
+          ),
           AnimatedSwitcher(
             duration: Duration(milliseconds: 100),
             child: message.uploadProgress < 1 && !message.hasUploaded

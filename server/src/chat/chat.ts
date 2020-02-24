@@ -124,10 +124,11 @@ export class MessageQueue {
         return new Promise(async (resolve, reject) => {
             let m = new Message({ ...newMessage })
             m = await m.save()
-
             let user = await User.findById(newMessage.receiver).exec()
             let userData: IUser = user?.toObject();
+            console.log("User data", userData.pushToken)
             if (userData.pushToken) {
+                console.log("Send using notification")
                 await admin.messaging().sendToDevice(userData.pushToken,
                     {
                         notification: {

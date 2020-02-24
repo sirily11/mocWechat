@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:path/path.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +97,9 @@ class ChatModel with ChangeNotifier {
     this.currentUser = User.fromJson(response.data);
     isSignedIn = true;
     connectWebsocket();
-    await firebaseMessaging.requestNotificationPermissions();
+    await firebaseMessaging.requestNotificationPermissions(
+      IosNotificationSettings(alert: true, sound: true, badge: true),
+    );
 
     //=============== Notification =================
 
@@ -277,6 +280,11 @@ class ChatModel with ChangeNotifier {
     /// Send image
     if (message.type == MessageType.image) {
       message.hasUploaded = false;
+      final ImageLabeler labeler = FirebaseVision.instance.imageLabeler();
+      final FirebaseVisionImage visionImage =
+          FirebaseVisionImage.fromFile(message.uploadFile);
+      final List<ImageLabel> labels = await labeler.processImage(visionImage);
+      message.label = labels.first.text;
       this.messages.add(message);
       notifyListeners();
       message.hasUploaded = false;
@@ -316,6 +324,7 @@ class ChatModel with ChangeNotifier {
 
     String uploadedPath = response.data['path'];
     message.messageBody = uploadedPath;
+    await Future.delayed(Duration(milliseconds: 200));
     message.hasUploaded = true;
     notifyListeners();
   }

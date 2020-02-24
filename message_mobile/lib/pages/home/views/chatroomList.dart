@@ -38,7 +38,7 @@ class ChatroomListRow extends StatelessWidget {
       return "";
     }
     if (message.type == MessageType.image) {
-      return "[image]";
+      return "[image][label: ${message.label}]";
     } else {
       return message.messageBody ?? "";
     }
