@@ -24,7 +24,7 @@
     "bcrypt": "^3.0.6",
     "cors": "^2.8.5",
     "express": "^4.16.4",
-    "express-fileupload": "^1.1.6",
+    "express-fileupload": "^1.1.9",
     "express-jwt": "^5.3.1",
     "express-ws": "^4.0.0",
     "firebase-admin": "^8.9.2",
